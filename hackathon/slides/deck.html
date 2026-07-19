@@ -1,0 +1,605 @@
+<title>RAKSHAK: Quantum ML for Threat Detection</title>
+<style>
+  :root {
+    --paper: #F4F1EA;
+    --ink: #241F16;
+    --muted: #6B6252;
+    --hairline: #DBD3BF;
+    --hairline-strong: #C7BCA2;
+    --rust: #B5502A;
+    --quantum: #4B3F7A;
+    --surface: #EAE4D4;
+    --serif: ui-serif, "Source Serif Pro", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
+    --mono: "IBM Plex Mono", "SF Mono", "Cascadia Code", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #1B1812;
+      --ink: #EDE6D6;
+      --muted: #A79C86;
+      --hairline: #3A3527;
+      --hairline-strong: #4A4433;
+      --rust: #C1633C;
+      --quantum: #8A7CC7;
+      --surface: #241F16;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1B1812; --ink: #EDE6D6; --muted: #A79C86; --hairline: #3A3527;
+    --hairline-strong: #4A4433; --rust: #C1633C; --quantum: #8A7CC7; --surface: #241F16;
+  }
+  :root[data-theme="light"] {
+    --paper: #F4F1EA; --ink: #241F16; --muted: #6B6252; --hairline: #DBD3BF;
+    --hairline-strong: #C7BCA2; --rust: #B5502A; --quantum: #4B3F7A; --surface: #EAE4D4;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    overflow-x: hidden;
+  }
+
+  .deck {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    padding: 40px 16px 100px;
+  }
+
+  .slide {
+    width: 100%;
+    max-width: 980px;
+    min-height: 540px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+    padding: 40px 52px 44px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .slide__eyebrow {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 10px;
+    margin-bottom: 22px;
+  }
+  .slide__eyebrow .num { font-variant-numeric: tabular-nums; }
+
+  .slide h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(26px, 3.4vw, 40px);
+    line-height: 1.15;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+  .slide h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(20px, 2.4vw, 27px);
+    line-height: 1.2;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  .subhead {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+  .slide p { line-height: 1.55; margin: 0 0 12px; max-width: 68ch; }
+  .slide .body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+  .muted { color: var(--muted); }
+  .quantum-tag { color: var(--quantum); }
+
+  .quote-block {
+    border-left: 3px solid var(--rust);
+    padding: 4px 0 4px 20px;
+    margin: 6px 0 4px;
+    font-family: var(--serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--ink);
+    max-width: 62ch;
+  }
+  .quote-src {
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  thead th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--hairline-strong);
+    padding: 6px 12px 6px 0;
+  }
+  tbody td {
+    border-bottom: 1px solid var(--hairline);
+    padding: 9px 12px 9px 0;
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, .tabular { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  .two-col { display: flex; gap: 40px; flex: 1; align-items: center; }
+  .two-col > div { flex: 1; min-width: 0; }
+
+  .stat-row { display: flex; gap: 40px; flex-wrap: wrap; margin-bottom: 6px; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat .v { font-family: var(--mono); font-size: 24px; font-variant-numeric: tabular-nums; color: var(--rust); }
+  .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 10px 0 6px;
+    overflow-x: auto;
+  }
+  .dnode {
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    padding: 10px 20px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    text-align: center;
+    max-width: 640px;
+  }
+  .dconnector {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .drow, .dlanes {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .dlanes { align-items: flex-start; margin: 4px 0; }
+  .lane {
+    flex: 1;
+    min-width: 220px;
+    max-width: 320px;
+    border: 1px solid var(--hairline);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .lane-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .lane .step {
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    padding: 7px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    text-align: center;
+  }
+  .chain {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 12.5px;
+  }
+  .chain .chip {
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    padding: 8px 14px;
+    white-space: nowrap;
+  }
+  .chain .arrow { padding: 0 10px; color: var(--muted); }
+
+  .dnode.quantum, .step.quantum, .chip.quantum { border-color: var(--quantum); color: var(--quantum); }
+  .dnode.secure, .step.secure, .chip.secure { border-color: var(--rust); color: var(--rust); }
+  .dnode.dashed, .step.dashed, .chip.dashed { border-style: dashed; color: var(--muted); }
+
+  .slide--wide { max-width: 1140px; }
+
+  ul.plain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  ul.plain li {
+    padding: 9px 0;
+    border-bottom: 1px solid var(--hairline);
+    display: flex;
+    gap: 14px;
+  }
+  ul.plain li:last-child { border-bottom: none; }
+  ul.plain li .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-top: 3px;
+    width: 92px;
+    flex-shrink: 0;
+  }
+
+  .mapping { display: flex; flex-direction: column; }
+  .mapping-row { display: flex; gap: 20px; padding: 11px 0; border-bottom: 1px solid var(--hairline); align-items: flex-start; }
+  .mapping-row:last-child { border-bottom: none; }
+  .mapping-row .ask { width: 34%; font-size: 12.5px; color: var(--muted); flex-shrink: 0; line-height: 1.4; }
+  .mapping-row .ships { font-size: 13px; line-height: 1.45; }
+  .mapping-row .ships b { color: var(--rust); }
+
+  .title-slide { justify-content: space-between; }
+  .title-slide .mark {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--quantum);
+  }
+  .title-slide h1 { font-size: clamp(40px, 6vw, 68px); margin: 14px 0 8px; }
+  .title-slide .sub { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--muted); max-width: 50ch; }
+  .title-slide .meta { font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; gap: 24px; padding-top: 18px; border-top: 1px solid var(--hairline); }
+
+  .honest-list { display: flex; flex-direction: column; gap: 12px; }
+  .honest-box {
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    padding: 13px 18px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .honest-box .k { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--quantum); display: block; margin-bottom: 5px; }
+
+  .close-slide { align-items: center; text-align: center; justify-content: center; gap: 6px; }
+  .close-slide h1 { font-size: clamp(32px, 5vw, 52px); }
+
+  @media print {
+    body { padding: 0; }
+    .deck { padding: 0; gap: 0; }
+    .slide {
+      max-width: none;
+      width: 100vw;
+      min-height: 100vh;
+      border: none;
+      page-break-after: always;
+      break-after: page;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .slide { animation: rise 0.4s ease both; }
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div class="deck">
+
+  <section class="slide title-slide">
+    <div>
+      <div class="mark">Theme 2 · Quantum Machine Learning for Threat Detection</div>
+      <h1>RAKSHAK</h1>
+      <p class="sub">Quantum Malware Hunter: a hybrid classical and quantum cascade for
+        real-time malware and behavior-log threat detection.</p>
+    </div>
+    <div class="meta">
+      <span>Garima Shrivastava &middot; Abdul Wahid Khan &middot; Anna Mariya Martin</span>
+      <span>Local-first, HTTP + gRPC, Qt6 desktop console</span>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Problem</span><span class="num">01 / 12</span></div>
+    <h2>Problem statement</h2>
+    <div class="body">
+      <div class="quote-block">
+        Use quantum-enhanced ML to detect unknown malware patterns in real time. Build a
+        hybrid AI system, classical and quantum, that predicts ransomware deployment
+        patterns from user behavior logs.
+        <div class="quote-src">Theme 2, "Quantum Malware Hunter &amp; AI + Quantum = Early Ransomware Detection"</div>
+      </div>
+      <p><b>The gap:</b> signature-based tools only catch what they've already seen.
+        Classical-only ML plateaus on borderline, never-seen cases. Most "quantum
+        security" demos are quantum-only toy models, with no classical backbone, no
+        real-time constraint, no system an operator could actually run.</p>
+      <p class="muted">Ransomware has a shape before it detonates: mass file touches,
+        auth anomalies, privilege-escalation attempts, all visible in ordinary behavior
+        logs, minutes before the payload executes. The right answer scores that stream in
+        real time and knows when to escalate an ambiguous case to a quantum judgment.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Solution</span><span class="num">02 / 12</span></div>
+    <h2>Solution overview</h2>
+    <div class="body">
+      <div class="mapping">
+        <div class="mapping-row">
+          <div class="ask">Hybrid AI system: classical + quantum</div>
+          <div class="ships"><b>file_qsvc</b>, a PennyLane quantum-embedded SVM, fused
+            with classical detectors via confidence-weighted averaging. A real cascade
+            stage, not a side demo.</div>
+        </div>
+        <div class="mapping-row">
+          <div class="ask">Detect unknown malware patterns</div>
+          <div class="ships"><b>log_hst / log_ngram</b> calibrate online with no labels;
+            <b>file_static / file_ml_or_rf</b> score learned structural features, not
+            signatures.</div>
+        </div>
+        <div class="mapping-row">
+          <div class="ask">Predict ransomware from behavior logs</div>
+          <div class="ships">The log cascade scores arbitrary log streams for anomalies in
+            real time: the right primitive, built and working.
+            <span class="quantum-tag">Honestly, no ransomware-labeled model yet</span>,
+            positioned for it, not claiming it.</div>
+        </div>
+        <div class="mapping-row">
+          <div class="ask">Real time</div>
+          <div class="ships">Latency-budgeted cascade: <b>5ms</b> p95 per log event,
+            <b>50ms</b> for an initial file verdict, <b>250ms</b> total with sandbox
+            enrichment.</div>
+        </div>
+        <div class="mapping-row">
+          <div class="ask">Dataset: simulated traffic or signatures</div>
+          <div class="ships">Real data instead: <b>LogHub HDFS_v1</b> and
+            <b>EMBER2018</b>, a deliberate upgrade over the suggested baseline.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide slide--wide">
+    <div class="slide__eyebrow"><span>Architecture</span><span class="num">03 / 12</span></div>
+    <h2>System architecture</h2>
+    <div class="body">
+      <div class="diagram">
+        <div class="dnode">Qt6 desktop client: dashboard, scan, log analysis, quarantine, settings</div>
+        <div class="dconnector">&darr;</div>
+        <div class="drow">
+          <div class="dnode">FastAPI (REST)</div>
+          <div class="dnode">gRPC Decider service</div>
+        </div>
+        <div class="dconnector">&darr;</div>
+        <div class="dnode">Auth and rate limits: x-api-key header</div>
+        <div class="dconnector">&darr;</div>
+        <div class="dnode">Router.decide(Event)</div>
+        <div class="dconnector">&darr;</div>
+        <div class="dnode">Detector registry</div>
+        <div class="dconnector">&darr;</div>
+        <div class="dlanes">
+          <div class="lane">
+            <div class="lane-title">Log path</div>
+            <div class="step">log_ngram</div>
+            <div class="step">log_hst</div>
+            <div class="step">log_sgd</div>
+          </div>
+          <div class="lane">
+            <div class="lane-title">File path</div>
+            <div class="step">file_static</div>
+            <div class="step">file_ml_or_rf</div>
+            <div class="step dashed">borderline score? escalate</div>
+            <div class="step">file_sandbox_signal, bwrap isolated</div>
+            <div class="step quantum">file_qsvc, quantum SVM</div>
+          </div>
+        </div>
+        <div class="dconnector">&darr;</div>
+        <div class="dnode">Confidence-weighted fusion</div>
+        <div class="dconnector">&darr;</div>
+        <div class="dnode">Verdict: score, confidence, suspicious or malicious</div>
+        <div class="dconnector">&darr;</div>
+        <div class="dnode secure">Encrypted quarantine, Fernet + HMAC (malicious verdict, confidence 0.5 or higher)</div>
+      </div>
+      <p class="muted">The Qt client never implements detection logic; it's a console
+        over the real backend. HTTP and gRPC both converge on one decision core, and the
+        quantum stage only runs on the borderline branch of the file path.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Detectors</span><span class="num">04 / 12</span></div>
+    <h2>Detection models and results</h2>
+    <div class="body">
+      <table>
+        <thead><tr><th>Detector</th><th>Type</th><th>Trained on</th><th>Measured</th></tr></thead>
+        <tbody>
+          <tr><td>log_ngram / log_hst</td><td>Unsupervised, online</td><td class="muted">none, calibrates live</td><td class="muted">non-constant scores, verified</td></tr>
+          <tr><td>log_sgd</td><td>Supervised, online</td><td>LogHub HDFS_v1</td><td class="num">acc 0.9953 · AUC 0.9823</td></tr>
+          <tr><td>file_static</td><td>Heuristic</td><td class="muted">none</td><td class="muted">entropy/header triage, always first</td></tr>
+          <tr><td>file_ml_or_rf</td><td>Supervised (LightGBM)</td><td>EMBER2018</td><td class="num">acc 0.9491 · AUC 0.9891</td></tr>
+          <tr><td>file_sandbox_signal</td><td>Static enrichment</td><td class="muted">n/a</td><td class="muted">read-only, bwrap-isolated, never executes</td></tr>
+          <tr><td class="quantum-tag">file_qsvc</td><td class="quantum-tag">Hybrid classical + quantum</td><td>EMBER2018 subset</td><td class="num">acc 0.6575 · AUC 0.6911</td></tr>
+        </tbody>
+      </table>
+      <p class="muted" style="margin-top:16px;">The quantum stage's AUC is documented
+        in-repo as "modest," the honest weak link. Nothing here is invented for the pitch.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Fusion</span><span class="num">05 / 12</span></div>
+    <h2>Decision fusion logic</h2>
+    <div class="body">
+      <p><span class="tabular">score = &Sigma;(score&middot;confidence) / &Sigma;(confidence)</span>,
+        verdict flips at score &ge; 0.5. The router short-circuits early: score &ge; 0.75
+        at confidence &ge; 0.5 is malicious, stop. Score &le; 0.25 at confidence &ge; 0.5
+        is benign, stop.</p>
+      <div class="diagram">
+        <div class="chain">
+          <span class="chip">file_static</span><span class="arrow">&rarr;</span>
+          <span class="chip">file_ml_or_rf</span><span class="arrow">&rarr;</span>
+          <span class="chip dashed">borderline? 0.45-0.65</span>
+        </div>
+        <div class="dlanes" style="margin-top:16px;">
+          <div class="lane">
+            <div class="lane-title">No</div>
+            <div class="step">Return fused verdict</div>
+          </div>
+          <div class="lane">
+            <div class="lane-title">Yes</div>
+            <div class="step">Sandbox signal</div>
+            <div class="step quantum">file_qsvc, quantum SVM</div>
+            <div class="step">Return fused verdict</div>
+          </div>
+        </div>
+      </div>
+      <p class="muted">The quantum SVM is a tie-breaker, not a gate every file passes
+        through. That's what makes it real-time compatible.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Security design</span><span class="num">06 / 12</span></div>
+    <h2>Sandbox and quarantine</h2>
+    <div class="two-col body">
+      <div>
+        <div class="subhead">Sandbox</div>
+        <p style="font-size:13px;">bwrap with <span class="tabular">--unshare-all
+          --die-with-parent --new-session --clearenv</span>, read-only binds, private
+          tmpfs. A real functional probe, not a presence check, falls back to
+          rlimit-only isolation if bwrap can't actually sandbox. Never executes the
+          sample by default.</p>
+      </div>
+      <div>
+        <div class="subhead">Quarantine</div>
+        <p style="font-size:13px;">Fernet encryption, key at <span class="tabular">chmod
+          0600</span>, HMAC-SHA256 integrity check on the on-disk database.
+          Write-verify-then-delete-original ordering: quarantining can never silently
+          lose data.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Datasets</span><span class="num">07 / 12</span></div>
+    <h2>Training datasets</h2>
+    <div class="body">
+      <p>Early planning scoped a wide field of options: CIC-IDS2017/2018, UNSW-NB15,
+        MalwareBazaar, theZoo, alongside LogHub and EMBER. What's actually wired into
+        training today is the narrower, concrete set below, both real and both already
+        producing the measured numbers in this pitch.</p>
+      <div class="stat-row" style="margin-top:8px;">
+        <div class="stat"><span class="v" style="font-size:16px;">LogHub HDFS_v1</span><span class="l">real distributed-system logs, feeds log_sgd</span></div>
+        <div class="stat"><span class="v" style="font-size:16px;">EMBER2018</span><span class="l">real malware PE features, feeds file_ml_or_rf + file_qsvc</span></div>
+      </div>
+      <p class="muted">The wider list stays the roadmap for broadening coverage past logs
+        and PE files. It's not a claim about what's trained now.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Desktop client</span><span class="num">08 / 12</span></div>
+    <h2>Desktop client features</h2>
+    <div class="body">
+      <ul class="plain">
+        <li><span class="tag">Dashboard</span><span>Real cumulative counters: files scanned, lines checked, monitoring uptime. Not placeholders.</span></li>
+        <li><span class="tag">Scan</span><span>On-demand file scan, wired to the live orchestrator.</span></li>
+        <li><span class="tag">Log analysis</span><span>Background tailing and manual line-check, raw tail and flagged-lines table.</span></li>
+        <li><span class="tag">Quarantine</span><span>Encrypted store with list, restore, and delete.</span></li>
+        <li><span class="tag">Adjustable UI</span><span>Resizable columns and sidebar, both persisted across restarts.</span></li>
+        <li><span class="tag">Theme</span><span>Live light/dark toggle, no restart required.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Engineering rigor</span><span class="num">09 / 12</span></div>
+    <h2>Testing and CI pipeline</h2>
+    <div class="body">
+      <div class="stat-row">
+        <div class="stat"><span class="v">216</span><span class="l">tests passing</span></div>
+        <div class="stat"><span class="v">~80%</span><span class="l">real coverage</span></div>
+        <div class="stat"><span class="v">6</span><span class="l">CI gates</span></div>
+      </div>
+      <p>Every push runs a style checker, ruff, mypy, bandit, pip-audit, and pytest with
+        a coverage floor, plus a separate gitleaks secret-scan and a Docker build with a
+        health-check job.</p>
+      <p class="muted">For a tool whose entire job is telling you what to trust, its own
+        supply chain and code quality have to hold up to the same scrutiny.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Challenges</span><span class="num">10 / 12</span></div>
+    <h2>Challenges faced during development</h2>
+    <div class="body">
+      <ul class="plain">
+        <li><span class="tag">Training safety</span><span>Real malware features, without risking the machines doing the training. Training ran in isolated VMs, process killed the moment it strayed into dangerous territory.</span></li>
+        <li><span class="tag">Offline bar</span><span>Treated as load-bearing, not aspirational: no scan, verdict, or quarantine action depends on reaching anything off-box.</span></li>
+        <li><span class="tag">Threat research</span><span>Consumer malware reporting doesn't map cleanly onto a high-assurance threat model, so detectors were built around generalizable primitives, not one narrow attack corpus.</span></li>
+        <li><span class="tag">No cloud budget</span><span>Every training run, every CI check, every test in the 216-test suite runs on ordinary developer hardware. That's itself evidence the system doesn't secretly need infrastructure a real deployment wouldn't have.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Honest limits</span><span class="num">11 / 12</span></div>
+    <h2>Limitations and future work</h2>
+    <div class="body">
+      <div class="honest-list">
+        <div class="honest-box">
+          <span class="k">Ransomware model</span>
+          No ransomware-labeled dataset or classifier yet. The log-anomaly pipeline is the
+          right primitive, positioned for it, not claiming it's done.
+        </div>
+        <div class="honest-box">
+          <span class="k">Shelved pipeline</span>
+          A separate TLS/encrypted-traffic-analysis pipeline exists in the repo but was
+          never wired to real data or the live backend. Deliberately shelved, not
+          silently abandoned.
+        </div>
+        <div class="honest-box">
+          <span class="k">CAPE sandbox adapter</span>
+          Planned, documented as a <span class="tabular">NotImplementedError</span> stub.
+          External by design, since CAPE is GPLv3-licensed.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide__eyebrow"><span>Demo</span><span class="num">12 / 12</span></div>
+    <h2>Demo walkthrough</h2>
+    <div class="body">
+      <p>The demo video covers, in order: a live file scan and verdict, background log
+        tailing with real anomaly flags landing in the UI, an encrypted-quarantine
+        restore and delete cycle, and the adjustable UI with a live theme toggle, all
+        against the real running backend, no mocked data.</p>
+      <p class="muted">Full shot-by-shot script: <span class="tabular">hackathon/demo-video-script.md</span></p>
+    </div>
+  </section>
+
+  <section class="slide close-slide">
+    <h1>RAKSHAK</h1>
+    <p class="sub">Hybrid classical and quantum threat detection, built real, scored honest.</p>
+  </section>
+
+</div>
