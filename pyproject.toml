@@ -41,8 +41,6 @@ dev = [
     "pip-audit",
     "schemathesis",
     "hypothesis",
-    "xgboost",   # only models/train_more_models.py imports this directly, kept here so
-    "lz4",       # full-repo test collection doesn't hit an ImportError on that module
     "setuptools>=83",  # PYSEC-2026-3447 fixed at 83.0.0 - pin here too since it's often
                         # pulled in transitively at a version older than the build-system floor
 ]

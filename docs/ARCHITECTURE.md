@@ -21,7 +21,7 @@ disagree, update one of them rather than letting a second architecture quietly g
 ## Non-Goals
 
 - Do not make the Qt client own detection logic.
-- Do not let `service/` become a second production backend.
+- Do not let anything outside `backend/` become a second production backend.
 - Do not commit generated caches, venvs, local temp folders, or large regenerated outputs.
 - Do not require quantum dependencies for normal backend/unit test work.
 
@@ -36,7 +36,7 @@ flowchart LR
     GRPC["gRPC Decider<br/>backend/api/gRPC/decider_server.py"]
     Backend["Decision backend<br/>orchestrator + engine"]
     Configs["Configs<br/>configs/*.yaml/json"]
-    Artifacts["Model artifacts<br/>models/artifacts/"]
+    Artifacts["Model artifacts<br/>backend/engine/models/artifacts/"]
     Sandbox["Sandbox/process monitor<br/>sandbox/"]
 
     Operator --> Qt
@@ -152,21 +152,24 @@ flowchart LR
 
 ## Training And Artifact Flow
 
-Training code can remain under `models/`, `src/models/`, and `features/` during migration, but
-serving code must only load stable artifacts through backend model adapters.
+The legacy top-level training pipeline (`models/`, `src/`, `service/`, `features/`,
+`Dataset/`) has been removed - it was disconnected from the live backend and never wired
+to real data (see `docs/overview.md`). Training code that actually feeds a live detector
+lives under `scripts/dev/` (`train_log_sgd.py`, `train_file_rf.py`, `train_qsvc.py`) and
+writes pretrained artifacts straight into `backend/engine/models/artifacts/`, loaded at
+runtime through `backend/engine/models/artifact_integrity.py`'s schema-hash check.
 
 ```mermaid
 flowchart TB
-    Raw["Raw datasets<br/>Dataset/, data/raw/"] --> Prep["Dataset prep scripts<br/>features/prepare_*.py"]
-    Prep --> FeatureCSV["Processed feature CSVs<br/>data/processed/features/"]
-    FeatureCSV --> Schema["Schema + hash<br/>configs/schema.json"]
-    FeatureCSV --> Train["Training scripts<br/>models/train_*.py, src/models/"]
-    Schema --> Train
-    Train --> Artifacts["Model artifacts<br/>models/artifacts/*.joblib"]
-    Train --> Runs["Metrics/runs<br/>models/runs/, results/"]
-    Artifacts --> Registry["Model registry<br/>configs/model_registry.yaml"]
+    Scripts["Training scripts<br/>scripts/dev/train_*.py"] --> Artifacts["Model artifacts<br/>backend/engine/models/artifacts/*.joblib"]
+    Artifacts --> Integrity["Schema-hash check<br/>artifact_integrity.py"]
+    Integrity --> Registry["Model registry<br/>configs/model_registry.yaml"]
     Registry --> Runtime["Runtime model loader/adapters"]
 ```
+
+The insider-threat engine (`backend/engine/insider/`) has no training/artifact pipeline at
+all - per-employee baselines are built entirely at runtime from ingested events (see
+`hackathon/technical-approach.md`), there is nothing to pretrain or version.
 
 ## gRPC Contract And Codegen
 
@@ -216,7 +219,7 @@ gRPC is best for Qt integration, streaming logs, and large-file upload flows.
 | `backend/orchestrator/` | Detector ordering, budgets, thresholds, fusion | Feature extraction details |
 | `backend/engine/features/` | Runtime-safe feature extraction | Training-only transforms |
 | `backend/engine/models/` | Runtime model adapters and loading | Experiment orchestration |
-| `models/`, `src/models/` | Training and experiments | Production request serving |
+| `backend/engine/insider/` | Per-employee baseline, anomaly, and risk scoring | HTTP/gRPC protocol details |
 | `client-qt/` | Operator UX and backend calls | Detection decisions |
 | `configs/` | Runtime config, schema, policy | Secrets or large artifacts |
 | `scripts/dev/` | Codegen/dev utilities | Runtime business logic |
@@ -231,11 +234,11 @@ gRPC is best for Qt integration, streaming logs, and large-file upload flows.
 - Add integration tests for HTTP log/file scan with auth.
 - Generate bindings in CI before running the gRPC tests.
 
-### Phase 2: Consolidate Legacy Service Code
+### Phase 2: Consolidate Legacy Service Code (done)
 
-- Decide whether `service/main.py` is deleted or kept as a compatibility wrapper.
-- Move old `clients/python/*` onto `backend.api.gRPC.stubs` or mark them legacy.
-- Keep legacy client paths as wrappers until downstream scripts migrate.
+- The rest of the legacy top-level pipeline (`service/`, `models/`, `src/`, `features/`,
+  `Dataset/`, `clients/`) was disconnected from the live backend and has been removed
+  outright rather than kept as dead weight or compatibility wrappers.
 
 ### Phase 3: Artifact Discipline
 
