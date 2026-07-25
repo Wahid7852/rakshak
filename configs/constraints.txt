@@ -2,5 +2,5 @@
 numpy>=2.0,<3
 pandas>=2.2,<3
 scikit-learn>=1.6,<1.8
-lightgbm>=4.3,<5
+lightgbm>=4.7.0,<5
 pydantic>=2.7,<3
