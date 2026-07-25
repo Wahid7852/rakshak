@@ -17,6 +17,9 @@ def _rate_limit_key(request: Request) -> str:
 _scan_file_rate = os.environ.get("RAKSHAK_RATE_SCAN_FILE", "30/minute")
 _scan_logline_rate = os.environ.get("RAKSHAK_RATE_SCAN_LOGLINE", "300/minute")
 _quarantine_mutate_rate = os.environ.get("RAKSHAK_RATE_QUARANTINE_MUTATE", "60/minute")
+# Batched (<=500 events/call), so a lower per-minute cap than scan_logline still
+# covers a fleet of collector agents polling every few seconds.
+_insider_ingest_rate = os.environ.get("RAKSHAK_RATE_INSIDER_INGEST", "120/minute")
 
 
 def scan_file_rate() -> str:
@@ -29,6 +32,10 @@ def scan_logline_rate() -> str:
 
 def quarantine_mutate_rate() -> str:
     return _quarantine_mutate_rate
+
+
+def insider_ingest_rate() -> str:
+    return _insider_ingest_rate
 
 
 limiter = Limiter(key_func=_rate_limit_key)
