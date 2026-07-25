@@ -1,0 +1,68 @@
+# Defines the installable RAKSHAK backend package and development dependencies.
+[build-system]
+requires = ["setuptools>=83", "grpcio-tools>=1.70,<2"]  # PYSEC-2026-3447 fixed at 83.0.0
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rakshak-backend"
+version = "0.1.0"
+description = "Local-first RAKSHAK decision backend"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.30,<1",
+    "pydantic>=2,<3",
+    "grpcio>=1.82.1,<2",  # grpcio-tools 1.78's generated code needs >=1.82.1 at runtime
+    "protobuf>=7,<8",     # ditto for gencode - confirmed by hand, protobuf<7 fails to load it
+    "joblib>=1.4,<2",
+    "numpy>=2,<3",
+    "pandas>=2,<4",
+    "scikit-learn>=1.5,<2",
+    "python-multipart>=0.0.18,<1",
+    "pyyaml>=6,<7",
+    "cryptography>=44.0.1",  # CVE-2026-26007 and others fixed below 44.0.1, see docs/results.md
+    "lief",
+    "lightgbm",
+    "slowapi",
+    "prometheus-client>=0.20,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "grpcio-tools>=1.70,<2",
+    "httpx>=0.27,<1",
+    "pytest>=8,<10",
+    "pytest-cov",
+    "scipy>=1.14,<2",
+    "ruff>=0.9,<1",
+    "black>=26.3.1,<27",  # PYSEC-2026-2120/2121 fixed at 26.3.0/26.3.1
+    "mypy",
+    "bandit",
+    "pip-audit",
+    "schemathesis",
+    "hypothesis",
+    "xgboost",   # only models/train_more_models.py imports this directly, kept here so
+    "lz4",       # full-repo test collection doesn't hit an ImportError on that module
+    "setuptools>=83",  # PYSEC-2026-3447 fixed at 83.0.0 - pin here too since it's often
+                        # pulled in transitively at a version older than the build-system floor
+]
+quantum = [
+    "pennylane",
+    "qiskit",
+]
+
+[project.scripts]
+rakshak-http = "backend.api.server:main"
+rakshak-grpc = "backend.api.gRPC.decider_server:main"
+
+[tool.setuptools.packages.find]
+include = ["backend*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# E401 (multiple imports per line) fights this codebase's deliberate compact-import
+# convention (see scripts/check_style.py, which enforces the opposite direction).
+ignore = ["E401"]

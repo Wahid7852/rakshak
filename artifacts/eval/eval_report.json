@@ -1,0 +1,22 @@
+{
+  "counts": {
+    "n": 5149949
+  },
+  "metrics": {
+    "accuracy": 0.4101,
+    "precision": 0.9999,
+    "recall": 0.4101,
+    "f1": 0.5817,
+    "tp": 2112061,
+    "tn": 10,
+    "fp": 200,
+    "fn": 3037678,
+    "auc": 0.85
+  },
+  "latency_ms": {
+    "p50": 0.01,
+    "p95": 0.01,
+    "p99": 0.03
+  },
+  "notes": "Scores >= 0.5 \u2192 malicious. Confidence-weighted cascade; QSVM only activates for borderline files."
+}

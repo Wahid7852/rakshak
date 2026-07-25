@@ -1,0 +1,12 @@
+.git
+__pycache__
+*.pyc
+.pytest-tmp
+.venv
+build/
+quarantine/
+data/
+client-qt/
+docs/
+tests/
+*.egg-info

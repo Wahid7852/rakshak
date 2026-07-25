@@ -1,0 +1,4 @@
+current_model_id: ""   # fill after training; or leave empty to auto-pick latest
+artifacts_dir: "models/artifacts"
+preproc_suffix: "_preproc.joblib"
+model_type: "qkernel"   # "classical" | "qml" | "qkernel"

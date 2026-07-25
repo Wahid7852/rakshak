@@ -1,0 +1,24 @@
+# Runs the HTTP and gRPC APIs as separate containers from the same image.
+services:
+  http:
+    build: .
+    command: rakshak-http
+    ports:
+      - "8080:8080"
+    environment:
+      RAKSHAK_API_KEY: ${RAKSHAK_API_KEY:-dev-key}
+    volumes:
+      - quarantine:/app/var/quarantine
+
+  grpc:
+    build: .
+    command: rakshak-grpc
+    ports:
+      - "50055:50055"
+    environment:
+      RAKSHAK_API_KEY: ${RAKSHAK_API_KEY:-dev-key}
+    volumes:
+      - quarantine:/app/var/quarantine
+
+volumes:
+  quarantine:

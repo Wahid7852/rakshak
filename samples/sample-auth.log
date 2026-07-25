@@ -1,0 +1,18 @@
+Jul 19 09:12:01 host sshd[1021]: Accepted publickey for anon from 192.168.1.12 port 22 ssh2
+Jul 19 09:14:33 host sshd[1044]: Failed password for invalid user admin from 203.0.113.44 port 51422 ssh2
+Jul 19 09:14:35 host sshd[1044]: Failed password for invalid user admin from 203.0.113.44 port 51422 ssh2
+Jul 19 09:14:37 host sshd[1044]: Failed password for invalid user admin from 203.0.113.44 port 51422 ssh2
+Jul 19 09:15:02 host sshd[1050]: Failed password for invalid user root from 198.51.100.9 port 41337 ssh2
+Jul 19 09:15:04 host sshd[1050]: Failed password for invalid user root from 198.51.100.9 port 41337 ssh2
+Jul 19 09:20:11 host sudo: anon : TTY=pts/2 ; PWD=/home/anon ; USER=root ; COMMAND=/usr/bin/apt update
+Jul 19 09:22:47 host sshd[1067]: Accepted publickey for anon from 192.168.1.12 port 22 ssh2
+Jul 19 09:31:19 host sshd[1082]: Invalid user oracle from 45.155.204.13 port 38812
+Jul 19 09:31:19 host sshd[1082]: Failed password for invalid user oracle from 45.155.204.13 port 38812 ssh2
+Jul 19 09:31:21 host sshd[1082]: Failed password for invalid user oracle from 45.155.204.13 port 38812 ssh2
+Jul 19 09:31:23 host sshd[1082]: Failed password for invalid user oracle from 45.155.204.13 port 38812 ssh2
+Jul 19 09:31:25 host sshd[1082]: Failed password for invalid user oracle from 45.155.204.13 port 38812 ssh2
+Jul 19 09:45:00 host CRON[1103]: (root) CMD (run-parts /etc/cron.hourly)
+Jul 19 09:51:38 host sshd[1119]: Failed password for invalid user postgres from 45.155.204.13 port 39901 ssh2
+Jul 19 09:58:02 host sshd[1130]: Accepted publickey for anon from 192.168.1.12 port 22 ssh2
+Jul 19 10:02:14 host su[1145]: pam_unix(su:session): session opened for user root by anon(uid=1000)
+Jul 19 10:10:59 host sshd[1160]: Failed password for invalid user test from 203.0.113.44 port 55210 ssh2

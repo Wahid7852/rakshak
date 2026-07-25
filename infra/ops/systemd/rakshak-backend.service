@@ -1,0 +1,15 @@
+[Unit]
+Description=RAKSHAK Backend
+After=network.target
+
+[Service]
+User=rakshak
+WorkingDirectory=/opt/rakshak
+ExecStart=/opt/rakshak/.venv/bin/uvicorn backend.api.main:app --host 127.0.0.1 --port 8080
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

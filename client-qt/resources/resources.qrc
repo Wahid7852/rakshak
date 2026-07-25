@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="style/rakshak.qss">style/rakshak.qss</file>
+        <file alias="style/rakshak-dark.qss">style/rakshak-dark.qss</file>
+        <file alias="icons/theme-light.svg">icons/theme-light.svg</file>
+        <file alias="icons/theme-dark.svg">icons/theme-dark.svg</file>
+        <file alias="icons/dashboard.svg">icons/dashboard.svg</file>
+        <file alias="icons/scan.svg">icons/scan.svg</file>
+        <file alias="icons/log.svg">icons/log.svg</file>
+        <file alias="icons/quarantine.svg">icons/quarantine.svg</file>
+        <file alias="icons/audit.svg">icons/audit.svg</file>
+        <file alias="icons/settings.svg">icons/settings.svg</file>
+        <file alias="icons/logo-shield.svg">icons/logo-shield.svg</file>
+        <file alias="icons/shield-check.svg">icons/shield-check.svg</file>
+        <file alias="icons/warning-triangle.svg">icons/warning-triangle.svg</file>
+        <file alias="icons/upload-cloud.svg">icons/upload-cloud.svg</file>
+    </qresource>
+</RCC>

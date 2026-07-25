@@ -1,0 +1,81 @@
+{
+  "pipeline_version": "1.1.0",
+  "features": [
+    "dur",
+    "proto",
+    "service",
+    "state",
+    "spkts",
+    "dpkts",
+    "sbytes",
+    "dbytes",
+    "rate",
+    "sttl",
+    "dttl",
+    "sload",
+    "dload",
+    "sloss",
+    "dloss",
+    "sinpkt",
+    "dinpkt",
+    "sjit",
+    "djit",
+    "swin",
+    "stcpb",
+    "dtcpb",
+    "dwin",
+    "tcprtt",
+    "synack",
+    "ackdat",
+    "smean",
+    "dmean",
+    "trans_depth",
+    "response_body_len",
+    "ct_srv_src",
+    "ct_state_ttl",
+    "ct_dst_ltm",
+    "ct_src_dport_ltm",
+    "ct_dst_sport_ltm",
+    "ct_dst_src_ltm",
+    "is_ftp_login",
+    "ct_ftp_cmd",
+    "ct_flw_http_mthd",
+    "ct_src_ltm",
+    "ct_srv_dst",
+    "is_sm_ips_ports"
+  ],
+  "target": "label",
+  "active": "rf",
+  "metrics": {
+    "rf": {
+      "acc": 0.9010556572621349,
+      "prec": 0.9880467030337832,
+      "f1": 0.9224906290906979,
+      "auc": 0.9831029382938685
+    },
+    "svm": {
+      "acc": 0.8733496444071838,
+      "prec": 0.9817676817776014,
+      "f1": 0.8991283255583667,
+      "auc": 0.959002868730301
+    },
+    "qsvc": {
+      "acc": 0.6593609024700441,
+      "prec": 0.9345287557402143,
+      "f1": 0.682189681593734,
+      "auc": 0.7648436554704585
+    }
+  },
+  "quantum_subset_idx": [
+    0,
+    6,
+    7,
+    8,
+    10,
+    11,
+    16,
+    26,
+    27,
+    31
+  ]
+}

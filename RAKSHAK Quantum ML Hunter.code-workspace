@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"chatgpt.openOnStartup": true,
+		"files.associations": {
+			"qvariant": "cpp",
+			"qmodelindex": "cpp",
+			"qabstracttablemodel": "cpp",
+			"qvector": "cpp",
+			"qstring": "cpp",
+			"qstandarditem": "cpp",
+			"qcoreapplication": "cpp",
+			"qsortfilterproxymodel": "cpp",
+			"qstandarditemmodel": "cpp",
+			"qmessagebox": "cpp",
+			"qstackedwidget": "cpp",
+			"qlistwidget": "cpp",
+			"qlcdnumber": "cpp",
+			"qmainwindow": "cpp"
+		}
+	}
+}

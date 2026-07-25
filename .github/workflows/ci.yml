@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install bubblewrap
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,quantum]"
+
+      - name: Run style checks
+        run: python scripts/check_style.py
+
+      - name: Lint (ruff) - blocking on backend/, report-only elsewhere
+        run: |
+          ruff check backend/
+          ruff check . --exit-zero
+
+      - name: Type check (mypy)
+        run: mypy backend --ignore-missing-imports
+
+      - name: SAST (bandit) - block on medium/high severity
+        run: bandit -r backend -ll
+
+      - name: Dependency audit (pip-audit against the installed environment)
+        run: pip-audit
+
+      - name: Generate gRPC bindings
+        run: python scripts/dev/gen_decider_proto.py
+
+      - name: Run tests
+        run: python -m pytest -q --cov=backend --cov-report=term-missing --cov-fail-under=76
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Build image
+        run: docker build -t rakshak-backend:ci .
+      - name: Boot it and hit the health endpoint for real
+        run: |
+          docker run -d --name rakshak-ci -p 18080:8080 -e RAKSHAK_API_KEY=dev-key rakshak-backend:ci
+          for _ in $(seq 1 20); do
+            curl -sf http://localhost:18080/health && break
+            sleep 1
+          done
+          curl -sf http://localhost:18080/health
+          docker logs rakshak-ci
+          docker rm -f rakshak-ci
