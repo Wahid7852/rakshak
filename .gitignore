@@ -20,6 +20,10 @@ backend/engine/models/artifacts/hst_state.joblib
 backend/engine/models/artifacts/ngram_state.joblib
 # Runtime quarantine store (encrypted samples + key), not repo content
 /quarantine/
+# Generated insider-threat demo data (regenerate via
+# samples/insider/generate_employee_logs.py) and collector agent runtime state
+/samples/insider/logs/
+.collector-state.json
 
 
 # C/C++ build artifacts
