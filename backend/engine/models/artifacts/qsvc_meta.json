@@ -1,0 +1,14 @@
+{
+  "feature_extractor": "backend.engine.models.pe_features.PEFeatureExtractor(feature_version=2)",
+  "quantum_embedding": "backend.engine.models.quantum.feature_map.QuantumFeatureMap(arch='zz')",
+  "trained_on": "EMBER2018 (HF mirror cw1521/ember2018-malware), small shard-sampled subset",
+  "metrics": {
+    "accuracy": 0.6575,
+    "precision": 0.6514161220043573,
+    "recall": 0.7239709443099274,
+    "auc": 0.6910517984621256,
+    "n_train": 2500,
+    "n_test": 800,
+    "n_wires": 8
+  }
+}

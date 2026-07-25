@@ -1,0 +1,16 @@
+# Config for the gitleaks CI job (.github/workflows/ci.yml, secret-scan).
+# Extends gitleaks' default ruleset rather than replacing it - this file exists so a
+# future false positive has a reviewable place to suppress it instead of someone
+# reaching for --no-verify or skipping the job outright.
+title = "rakshak gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known-safe patterns that match a default rule but aren't real secrets"
+regexes = [
+  # git-lfs pointer files (models/artifacts/*.joblib, see .gitattributes) are plain
+  # text containing a sha256 content hash - not a secret, just a content pointer.
+  '''version https://git-lfs\.github\.com/spec/v1''',
+]

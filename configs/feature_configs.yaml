@@ -1,0 +1,41 @@
+# Feature extraction configuration settings
+
+# Feature types to extract
+feature_types:
+  basic: true          # Basic features like file size
+  enhanced: true       # Enhanced statistical features
+  tls: true           # TLS protocol features  
+  flow: true          # Flow and timing features
+  behavioral: true    # Behavioral pattern features
+
+# Statistical feature settings
+statistical:
+  block_sizes: [16, 32, 64]  # Block sizes for statistical analysis
+  ngram_sizes: [2, 3, 4]     # N-gram sizes
+  window_sizes: [256, 512]   # Window sizes for entropy analysis
+
+# TLS feature settings
+tls:
+  record_types: true        # Extract record type frequencies
+  versions: true           # Extract version indicators  
+  cipher_suites: true      # Extract cipher suite info
+  extensions: true         # Extract extension usage
+
+# Flow feature settings
+flow:
+  direction: true        # Analyze flow directions
+  timing: true          # Analyze timing patterns
+  size_stats: true      # Analyze message sizes
+  window_size: 10       # Window for pattern analysis
+
+# Behavioral feature settings  
+behavioral:
+  state_tracking: true       # Track connection states
+  renegotiation: true       # Analyze renegotiation
+  errors: true              # Track error patterns
+  pattern_window: 5         # Window for pattern detection
+
+# Output settings
+output:
+  format: csv          # Output format (csv or json)
+  include_metadata: true  # Include extraction metadata

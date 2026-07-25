@@ -1,0 +1,6 @@
+# Quantum embedding configuration (optional). If Pennylane is absent or enabled=false,
+# training/inference will gracefully fall back to classical.
+enabled: true
+# Quantum embedding parameters
+n_wires: 6  # Number of qubits
+shots: null # null for analytic/exact computation

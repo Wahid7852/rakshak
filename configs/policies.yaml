@@ -1,0 +1,16 @@
+hst-log:
+  confidence_threshold: 0.75
+  max_latency_ms: 10
+
+ngram-log:
+  confidence_threshold: 0.7
+
+sgd-file:
+  confidence_threshold: 0.8
+  quarantine_on_malicious: true
+
+fuse-file:
+  confidence_threshold: 0.8
+
+qsvc-file:
+  confidence_threshold: 0.85

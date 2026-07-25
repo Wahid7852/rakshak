@@ -1,0 +1,248 @@
+/* ============================================================
+   RAKSHAK :: "Ledger" theme
+   A warm-paper, editorial theme - hairline dividers instead of
+   card grids, a serif for titles/status sentences, muted ink for
+   body copy, monospace for hashes/ids/scores. One accent color
+   (oxide rust) used for identity, not scattered as decoration.
+   Deliberately not the Tailwind default palette
+   (#22C55E / #EF4444 / #FBBF24) that every generated dashboard ships.
+   ============================================================ */
+
+* {
+    font-family: "IBM Plex Sans", "Inter", "Segoe UI", sans-serif;
+    outline: none;
+}
+
+QWidget {
+    background-color: #F4F1EA;
+    color: #241F16;
+    font-size: 13px;
+}
+
+QMainWindow, QDialog {
+    background-color: #F4F1EA;
+}
+
+QLabel {
+    background: transparent;
+}
+
+QLabel#pageTitle {
+    font-family: "Source Serif 4", "Newsreader", Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #241F16;
+}
+
+QLabel#statusSentence {
+    font-family: "Source Serif 4", "Newsreader", Georgia, serif;
+    font-size: 15px;
+    color: #241F16;
+    padding: 2px 0 12px 0;
+}
+
+QLabel#sectionLabel {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: #6B6252;
+    text-transform: uppercase;
+    padding-top: 8px;
+}
+
+QLabel[role="muted"] {
+    color: #6B6252;
+}
+
+QLabel[role="mono"], QPlainTextEdit[role="mono"] {
+    font-family: "IBM Plex Mono", "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: #4A4436;
+}
+
+/* ---------------- Scrollbars: thin, no track chrome ---------------- */
+QScrollBar:vertical {
+    background: transparent;
+    width: 9px;
+    margin: 2px;
+}
+QScrollBar::handle:vertical {
+    background: #C9C0AA;
+    border-radius: 4px;
+    min-height: 24px;
+}
+QScrollBar::handle:vertical:hover { background: #A79C86; }
+QScrollBar:horizontal {
+    background: transparent;
+    height: 9px;
+    margin: 2px;
+}
+QScrollBar::handle:horizontal {
+    background: #C9C0AA;
+    border-radius: 4px;
+    min-width: 24px;
+}
+QScrollBar::add-line, QScrollBar::sub-line { height: 0px; width: 0px; }
+
+QToolTip {
+    background-color: #241F16;
+    color: #F4F1EA;
+    border: 1px solid #3A3527;
+    padding: 5px 9px;
+    border-radius: 3px;
+}
+
+/* ============================= SIDEBAR ============================= */
+QFrame#sidebar {
+    background-color: #EDE8DB;
+    border-right: 1px solid #C9C0AA;
+}
+
+QLabel#logoTitle {
+    font-family: "Source Serif 4", "Newsreader", Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #241F16;
+}
+
+QLabel#logoSubtitle {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #6B6252;
+    text-transform: uppercase;
+}
+
+QPushButton#navButton {
+    background: transparent;
+    border: none;
+    border-left: 2px solid transparent;
+    text-align: left;
+    padding: 9px 14px;
+    color: #6B6252;
+    font-size: 13px;
+}
+QPushButton#navButton:hover {
+    color: #241F16;
+    background-color: #E4DECC;
+}
+QPushButton#navButton:checked {
+    color: #241F16;
+    font-weight: 600;
+    border-left: 2px solid #B5502A;
+    background-color: #E4DECC;
+}
+
+/* ============================= BUTTONS ============================= */
+QPushButton {
+    background-color: transparent;
+    border: 1px solid #C9C0AA;
+    border-radius: 3px;
+    padding: 6px 14px;
+    color: #241F16;
+}
+QPushButton:hover {
+    border-color: #A79C86;
+    background-color: #EDE8DB;
+}
+QPushButton:disabled {
+    color: #A79C86;
+    border-color: #DCD5C2;
+}
+
+QPushButton[role="primary"] {
+    background-color: #B5502A;
+    border: 1px solid #B5502A;
+    color: #F4F1EA;
+    font-weight: 600;
+}
+QPushButton[role="primary"]:hover {
+    background-color: #9C4322;
+    border-color: #9C4322;
+}
+QPushButton[role="primary"]:disabled {
+    background-color: #D8B7A6;
+    border-color: #D8B7A6;
+    color: #F4F1EA;
+}
+
+QPushButton[role="danger"] {
+    border-color: #7A1E1E;
+    color: #7A1E1E;
+}
+QPushButton[role="danger"]:hover {
+    background-color: #7A1E1E;
+    color: #F4F1EA;
+}
+
+/* ============================= INPUTS ============================= */
+QLineEdit, QPlainTextEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+    background-color: #FBFAF6;
+    border: 1px solid #C9C0AA;
+    border-radius: 3px;
+    padding: 5px 8px;
+    color: #241F16;
+    selection-background-color: #B5502A;
+    selection-color: #F4F1EA;
+}
+QLineEdit:focus, QPlainTextEdit:focus, QTextEdit:focus, QComboBox:focus {
+    border-color: #B5502A;
+}
+
+/* ============================= TABLES / LISTS ============================= */
+/* Hairline row dividers, no grid box, no alternating card fills - this is
+   the direct replacement for the PR's QFrame-card layout language. */
+QTableView, QListView, QTreeView {
+    background-color: #F4F1EA;
+    alternate-background-color: #F4F1EA;
+    border: none;
+    gridline-color: #E4DECC;
+    selection-background-color: #EDE0D6;
+    selection-color: #241F16;
+}
+QTableView::item, QListView::item, QTreeView::item {
+    border-bottom: 1px solid #E4DECC;
+    padding: 6px 4px;
+}
+QHeaderView::section {
+    background-color: #F4F1EA;
+    color: #6B6252;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: none;
+    border-bottom: 1px solid #C9C0AA;
+    padding: 6px 4px;
+}
+
+/* ============================= PROGRESS / STATUS ============================= */
+QProgressBar {
+    background-color: #E4DECC;
+    border: none;
+    border-radius: 2px;
+    height: 6px;
+    text-align: center;
+    color: transparent;
+}
+QProgressBar::chunk {
+    background-color: #B5502A;
+    border-radius: 2px;
+}
+
+QStatusBar {
+    background-color: #EDE8DB;
+    border-top: 1px solid #C9C0AA;
+    color: #6B6252;
+}
+
+/* Severity accents - deliberately not #22C55E/#EF4444/#FBBF24 */
+QLabel[severity="clean"]    { color: #241F16; }
+QLabel[severity="caution"]  { color: #A8791F; }
+QLabel[severity="high"]     { color: #B5502A; }
+QLabel[severity="critical"] { color: #7A1E1E; font-weight: 600; }
+
+QFrame[role="divider"] {
+    background-color: #C9C0AA;
+    max-height: 1px;
+    min-height: 1px;
+}

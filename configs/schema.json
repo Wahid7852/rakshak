@@ -1,0 +1,174 @@
+{
+  "schema_version": "1.0.0",
+  "features": [
+    {
+      "name": "dur",
+      "dtype": "float"
+    },
+    {
+      "name": "proto",
+      "dtype": "float"
+    },
+    {
+      "name": "service",
+      "dtype": "float"
+    },
+    {
+      "name": "state",
+      "dtype": "float"
+    },
+    {
+      "name": "spkts",
+      "dtype": "float"
+    },
+    {
+      "name": "dpkts",
+      "dtype": "float"
+    },
+    {
+      "name": "sbytes",
+      "dtype": "float"
+    },
+    {
+      "name": "dbytes",
+      "dtype": "float"
+    },
+    {
+      "name": "rate",
+      "dtype": "float"
+    },
+    {
+      "name": "sttl",
+      "dtype": "float"
+    },
+    {
+      "name": "dttl",
+      "dtype": "float"
+    },
+    {
+      "name": "sload",
+      "dtype": "float"
+    },
+    {
+      "name": "dload",
+      "dtype": "float"
+    },
+    {
+      "name": "sloss",
+      "dtype": "float"
+    },
+    {
+      "name": "dloss",
+      "dtype": "float"
+    },
+    {
+      "name": "sinpkt",
+      "dtype": "float"
+    },
+    {
+      "name": "dinpkt",
+      "dtype": "float"
+    },
+    {
+      "name": "sjit",
+      "dtype": "float"
+    },
+    {
+      "name": "djit",
+      "dtype": "float"
+    },
+    {
+      "name": "swin",
+      "dtype": "float"
+    },
+    {
+      "name": "stcpb",
+      "dtype": "float"
+    },
+    {
+      "name": "dtcpb",
+      "dtype": "float"
+    },
+    {
+      "name": "dwin",
+      "dtype": "float"
+    },
+    {
+      "name": "tcprtt",
+      "dtype": "float"
+    },
+    {
+      "name": "synack",
+      "dtype": "float"
+    },
+    {
+      "name": "ackdat",
+      "dtype": "float"
+    },
+    {
+      "name": "smean",
+      "dtype": "float"
+    },
+    {
+      "name": "dmean",
+      "dtype": "float"
+    },
+    {
+      "name": "trans_depth",
+      "dtype": "float"
+    },
+    {
+      "name": "response_body_len",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_srv_src",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_state_ttl",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_dst_ltm",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_src_dport_ltm",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_dst_sport_ltm",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_dst_src_ltm",
+      "dtype": "float"
+    },
+    {
+      "name": "is_ftp_login",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_ftp_cmd",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_flw_http_mthd",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_src_ltm",
+      "dtype": "float"
+    },
+    {
+      "name": "ct_srv_dst",
+      "dtype": "float"
+    },
+    {
+      "name": "is_sm_ips_ports",
+      "dtype": "float"
+    }
+  ],
+  "target": "label"
+}

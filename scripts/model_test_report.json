@@ -1,0 +1,14 @@
+{
+  "qm-baseline_v0-logreg_py3.13_2025-10-01T20-27-20Z": {
+    "error": "X has 42 features, but LogisticRegression is expecting 14 features as input."
+  },
+  "qsvc": {
+    "error": "X has 3 features, but SVC is expecting 6 features as input."
+  },
+  "rf": {
+    "error": "Mix of label input types (string and number)"
+  },
+  "svm": {
+    "error": "Mix of label input types (string and number)"
+  }
+}

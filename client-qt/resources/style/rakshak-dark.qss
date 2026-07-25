@@ -1,0 +1,245 @@
+/* ============================================================
+   RAKSHAK :: "Ledger" theme, dark variant
+   Same structure/selectors as rakshak.qss - warm-black paper instead
+   of warm-white, same editorial hairline language, same oxide-rust
+   accent (it already reads fine on dark). Two severity colors are
+   brightened here since their light-theme values lose contrast on
+   a near-black background.
+   ============================================================ */
+
+* {
+    font-family: "IBM Plex Sans", "Inter", "Segoe UI", sans-serif;
+    outline: none;
+}
+
+QWidget {
+    background-color: #1B1812;
+    color: #EDE6D6;
+    font-size: 13px;
+}
+
+QMainWindow, QDialog {
+    background-color: #1B1812;
+}
+
+QLabel {
+    background: transparent;
+}
+
+QLabel#pageTitle {
+    font-family: "Source Serif 4", "Newsreader", Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #EDE6D6;
+}
+
+QLabel#statusSentence {
+    font-family: "Source Serif 4", "Newsreader", Georgia, serif;
+    font-size: 15px;
+    color: #EDE6D6;
+    padding: 2px 0 12px 0;
+}
+
+QLabel#sectionLabel {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: #A79C86;
+    text-transform: uppercase;
+    padding-top: 8px;
+}
+
+QLabel[role="muted"] {
+    color: #A79C86;
+}
+
+QLabel[role="mono"], QPlainTextEdit[role="mono"] {
+    font-family: "IBM Plex Mono", "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: #C9BFA8;
+}
+
+/* ---------------- Scrollbars: thin, no track chrome ---------------- */
+QScrollBar:vertical {
+    background: transparent;
+    width: 9px;
+    margin: 2px;
+}
+QScrollBar::handle:vertical {
+    background: #4A4436;
+    border-radius: 4px;
+    min-height: 24px;
+}
+QScrollBar::handle:vertical:hover { background: #5C5544; }
+QScrollBar:horizontal {
+    background: transparent;
+    height: 9px;
+    margin: 2px;
+}
+QScrollBar::handle:horizontal {
+    background: #4A4436;
+    border-radius: 4px;
+    min-width: 24px;
+}
+QScrollBar::add-line, QScrollBar::sub-line { height: 0px; width: 0px; }
+
+QToolTip {
+    background-color: #EDE6D6;
+    color: #1B1812;
+    border: 1px solid #3A3527;
+    padding: 5px 9px;
+    border-radius: 3px;
+}
+
+/* ============================= SIDEBAR ============================= */
+QFrame#sidebar, QWidget#sidebar {
+    background-color: #241F16;
+    border-right: 1px solid #3A3527;
+}
+
+QLabel#logoTitle {
+    font-family: "Source Serif 4", "Newsreader", Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #EDE6D6;
+}
+
+QLabel#logoSubtitle {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #A79C86;
+    text-transform: uppercase;
+}
+
+QPushButton#navButton {
+    background: transparent;
+    border: none;
+    border-left: 2px solid transparent;
+    text-align: left;
+    padding: 9px 14px;
+    color: #A79C86;
+    font-size: 13px;
+}
+QPushButton#navButton:hover {
+    color: #EDE6D6;
+    background-color: #2C261A;
+}
+QPushButton#navButton:checked {
+    color: #EDE6D6;
+    font-weight: 600;
+    border-left: 2px solid #B5502A;
+    background-color: #2C261A;
+}
+
+/* ============================= BUTTONS ============================= */
+QPushButton {
+    background-color: transparent;
+    border: 1px solid #3A3527;
+    border-radius: 3px;
+    padding: 6px 14px;
+    color: #EDE6D6;
+}
+QPushButton:hover {
+    border-color: #4A4436;
+    background-color: #241F16;
+}
+QPushButton:disabled {
+    color: #5C5544;
+    border-color: #2C261A;
+}
+
+QPushButton[role="primary"] {
+    background-color: #B5502A;
+    border: 1px solid #B5502A;
+    color: #F4F1EA;
+    font-weight: 600;
+}
+QPushButton[role="primary"]:hover {
+    background-color: #C96A42;
+    border-color: #C96A42;
+}
+QPushButton[role="primary"]:disabled {
+    background-color: #5A3A2C;
+    border-color: #5A3A2C;
+    color: #A79C86;
+}
+
+QPushButton[role="danger"] {
+    border-color: #C24545;
+    color: #C24545;
+}
+QPushButton[role="danger"]:hover {
+    background-color: #C24545;
+    color: #1B1812;
+}
+
+/* ============================= INPUTS ============================= */
+QLineEdit, QPlainTextEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+    background-color: #241F16;
+    border: 1px solid #3A3527;
+    border-radius: 3px;
+    padding: 5px 8px;
+    color: #EDE6D6;
+    selection-background-color: #B5502A;
+    selection-color: #F4F1EA;
+}
+QLineEdit:focus, QPlainTextEdit:focus, QTextEdit:focus, QComboBox:focus {
+    border-color: #B5502A;
+}
+
+/* ============================= TABLES / LISTS ============================= */
+QTableView, QListView, QTreeView {
+    background-color: #1B1812;
+    alternate-background-color: #1B1812;
+    border: none;
+    gridline-color: #2C261A;
+    selection-background-color: #3A2620;
+    selection-color: #EDE6D6;
+}
+QTableView::item, QListView::item, QTreeView::item {
+    border-bottom: 1px solid #2C261A;
+    padding: 6px 4px;
+}
+QHeaderView::section {
+    background-color: #1B1812;
+    color: #A79C86;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: none;
+    border-bottom: 1px solid #3A3527;
+    padding: 6px 4px;
+}
+
+/* ============================= PROGRESS / STATUS ============================= */
+QProgressBar {
+    background-color: #2C261A;
+    border: none;
+    border-radius: 2px;
+    height: 6px;
+    text-align: center;
+    color: transparent;
+}
+QProgressBar::chunk {
+    background-color: #B5502A;
+    border-radius: 2px;
+}
+
+QStatusBar {
+    background-color: #241F16;
+    border-top: 1px solid #3A3527;
+    color: #A79C86;
+}
+
+/* Severity accents - brightened from the light theme where needed for contrast */
+QLabel[severity="clean"]    { color: #EDE6D6; }
+QLabel[severity="caution"]  { color: #C9971F; }
+QLabel[severity="high"]     { color: #B5502A; }
+QLabel[severity="critical"] { color: #C24545; font-weight: 600; }
+
+QFrame[role="divider"] {
+    background-color: #3A3527;
+    max-height: 1px;
+    min-height: 1px;
+}

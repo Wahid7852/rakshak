@@ -1,0 +1,67 @@
+# Model configuration for different classifiers
+# This file defines the parameters and settings for model training
+
+random_forest:
+  n_estimators: 200
+  max_depth: null
+  min_samples_split: 2
+  min_samples_leaf: 1
+  class_weight: balanced_subsample
+  optimization:
+    enabled: true
+    cv_folds: 5
+    param_grid:
+      n_estimators: [100, 200, 300]
+      max_depth: [null, 10, 20, 30]
+      min_samples_split: [2, 5, 10]
+      min_samples_leaf: [1, 2, 4]
+
+lightgbm:
+  enabled: true
+  hyperparameters:
+    num_leaves: 31
+    learning_rate: 0.1
+    n_estimators: 100
+  optimization:
+    enabled: true
+    cv_folds: 5
+    param_grid:
+      num_leaves: [31, 63, 127]
+      learning_rate: [0.01, 0.1, 0.3]
+      n_estimators: [100, 200, 300]
+
+neural_net:
+  enabled: true  # Disabled by default as it requires significant compute
+  architecture:
+    hidden_layers: [256, 128, 64]
+    activation: gelu
+    dropout: 0.3
+  training:
+    batch_size: 32
+    epochs: 100
+    learning_rate: 0.001
+    early_stopping: true
+    patience: 10
+
+xgboost:
+  enabled: true
+  hyperparameters:
+    max_depth: 6
+    learning_rate: 0.3
+    n_estimators: 100
+  optimization:
+    enabled: true
+    cv_folds: 5
+    param_grid:
+      max_depth: [3, 6, 9]
+      learning_rate: [0.01, 0.1, 0.3]
+      n_estimators: [100, 200, 300]
+
+ensemble:
+  enabled: true
+  models:
+    - random_forest
+    - lightgbm
+    - xgboost
+  voting: soft
+  weights: null  # Auto-determine based on validation performance
