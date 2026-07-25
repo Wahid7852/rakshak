@@ -1,0 +1,237 @@
+<!-- Insider-threat alert dashboard: severity-scored alert feed + per-employee risk. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RAKSHAK - Insider Threat Alerts</title>
+<style>
+  :root {
+    --bg: #F4F1EA; --ink: #241F16; --muted: #6B6252; --line: #C9C0AA;
+    --panel: #EDE8DB; --accent: #B5502A;
+    --low: #6B6252; --medium: #FBBF24; --high: #EF4444; --critical: #991B1B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 "Iowan Old Style", "Georgia", serif;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+  }
+  h1 { font-weight: 600; letter-spacing: 0.01em; margin: 0 0 0.15rem; }
+  .sub { color: var(--muted); margin: 0 0 1.75rem; font-size: 0.95rem; }
+  .bar {
+    display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;
+    margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line);
+  }
+  label { font-size: 0.85rem; color: var(--muted); }
+  input, select {
+    font: inherit; padding: 0.4rem 0.6rem; border: 1px solid var(--line);
+    background: #fff; color: var(--ink); border-radius: 3px;
+  }
+  button {
+    font: inherit; padding: 0.45rem 0.9rem; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--bg); border-radius: 3px; cursor: pointer;
+  }
+  button:hover { background: #9C4322; }
+  button.secondary { background: transparent; color: var(--accent); }
+  .layout { display: grid; grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr); gap: 2rem; align-items: start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); }
+  th, td { text-align: left; padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--line); font-size: 0.92rem; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .reasons { color: var(--muted); font-size: 0.85rem; }
+  .sev { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: #241F16; }
+  .sev-low { background: #DCD5C2; color: var(--muted); }
+  .sev-medium { background: var(--medium); }
+  .sev-high { background: var(--high); color: #fff; }
+  .sev-critical { background: var(--critical); color: #fff; }
+  .triage-btn {
+    font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-right: 0.3rem;
+    border-radius: 3px; white-space: nowrap;
+  }
+  .triage-btn.confirm { background: var(--accent); border-color: var(--accent); }
+  .triage-btn.dismiss { background: transparent; color: var(--muted); border-color: var(--line); }
+  .triage-btn.dismiss:hover { background: var(--panel); }
+  .feedback-tag { color: var(--muted); font-size: 0.78rem; font-style: italic; }
+  .panel { background: var(--panel); border: 1px solid var(--line); padding: 1.1rem 1.25rem; }
+  .panel h2 { font-size: 1rem; margin: 0 0 0.9rem; }
+  .userrow { padding: 0.55rem 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+  .userrow:last-child { border-bottom: none; }
+  .userrow-head { display: flex; justify-content: space-between; align-items: center; }
+  .narrative { color: var(--muted); font-size: 0.82rem; margin: 0.3rem 0 0; line-height: 1.45; }
+  .meter { width: 90px; height: 6px; background: #DCD5C2; border-radius: 999px; overflow: hidden; }
+  .meter > div { height: 100%; background: var(--accent); }
+  .empty { color: var(--muted); padding: 1.5rem; text-align: center; }
+  .stamp { color: var(--muted); font-size: 0.8rem; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+  <h1>Insider Threat Alerts</h1>
+  <p class="sub">Severity-scored alerts from per-employee behavioral baselines - login, file access, and data transfer.</p>
+
+  <div class="bar">
+    <div><label>API key</label><br><input id="apiKey" type="password" placeholder="x-api-key" style="width: 12rem;"></div>
+    <div><label>Min severity</label><br>
+      <select id="minSeverity">
+        <option value="">all</option>
+        <option value="low">low+</option>
+        <option value="medium" selected>medium+</option>
+        <option value="high">high+</option>
+        <option value="critical">critical only</option>
+      </select>
+    </div>
+    <div><label>Employee ID</label><br><input id="employeeFilter" type="text" placeholder="(any)" style="width: 9rem;"></div>
+    <button id="refreshBtn">refresh</button>
+    <button id="autoBtn" class="secondary">auto: off</button>
+  </div>
+
+  <div class="layout">
+    <div>
+      <table id="alertsTable">
+        <thead>
+          <tr><th>severity</th><th>employee</th><th>type</th><th>risk</th><th>reasons</th><th>when</th><th>triage</th></tr>
+        </thead>
+        <tbody id="alertsBody"></tbody>
+      </table>
+      <div id="alertsEmpty" class="empty" style="display:none;">no alerts at this filter level</div>
+    </div>
+    <div class="panel">
+      <h2>employees by risk</h2>
+      <div id="usersList"></div>
+    </div>
+  </div>
+
+  <p class="stamp" id="stamp"></p>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let autoTimer = null;
+
+function severityChip(sev) {
+  return `<span class="sev sev-${sev}">${sev}</span>`;
+}
+
+function fmtTime(ts) {
+  return new Date(ts * 1000).toLocaleString();
+}
+
+async function apiGet(path) {
+  const key = $('apiKey').value.trim();
+  const res = await fetch(path, { headers: key ? { 'x-api-key': key } : {} });
+  if (!res.ok) throw new Error(`${path} -> HTTP ${res.status}`);
+  return res.json();
+}
+
+async function refresh() {
+  const minSeverity = $('minSeverity').value;
+  const employeeId = $('employeeFilter').value.trim();
+  const params = new URLSearchParams();
+  if (minSeverity) params.set('min_severity', minSeverity);
+  if (employeeId) params.set('employee_id', employeeId);
+
+  try {
+    const data = await apiGet(`/v1/insider/alerts?${params.toString()}`);
+    renderAlerts(data.alerts || []);
+    $('stamp').textContent = `last refreshed ${new Date().toLocaleTimeString()} - ${data.alerts.length} alert(s)`;
+  } catch (err) {
+    $('stamp').textContent = `refresh failed: ${err.message}`;
+  }
+
+  renderUsers();
+}
+
+function renderAlerts(alerts) {
+  const body = $('alertsBody');
+  const empty = $('alertsEmpty');
+  body.innerHTML = '';
+  if (!alerts.length) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  const order = { critical: 0, high: 1, medium: 2, low: 3 };
+  alerts.sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9) || b.timestamp - a.timestamp);
+  for (const a of alerts) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${severityChip(a.severity)}</td>
+      <td>${a.employee_id}</td>
+      <td>${a.subtype}</td>
+      <td>${a.risk.toFixed(2)}</td>
+      <td class="reasons">${(a.reasons || []).join('; ') || '-'}</td>
+      <td>${fmtTime(a.timestamp)}</td>
+      <td>${triageCell(a)}</td>`;
+    body.appendChild(tr);
+  }
+}
+
+function triageCell(alert) {
+  if (alert.feedback) {
+    return `<span class="feedback-tag">${alert.feedback === 'confirmed' ? 'confirmed' : 'dismissed'}</span>`;
+  }
+  return `
+    <button class="triage-btn confirm" onclick="submitFeedback(${alert.alert_id}, 'confirmed')">confirm</button>
+    <button class="triage-btn dismiss" onclick="submitFeedback(${alert.alert_id}, 'false_positive')">dismiss</button>`;
+}
+
+async function submitFeedback(alertId, verdict) {
+  const key = $('apiKey').value.trim();
+  try {
+    const res = await fetch(`/v1/insider/alerts/${alertId}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(key ? { 'x-api-key': key } : {}) },
+      body: JSON.stringify({ verdict }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    refresh();
+  } catch (err) {
+    $('stamp').textContent = `feedback failed: ${err.message}`;
+  }
+}
+
+// The alerts feed only carries medium+ events by design (see alert_store.py) -
+// the per-employee-risk panel comes from whichever employee_ids have shown up
+// in it so far, giving a compact "who's trending up" view alongside the feed.
+async function renderUsers() {
+  const list = $('usersList');
+  const seen = new Set();
+  for (const row of $('alertsBody').children) {
+    seen.add(row.children[1].textContent);
+  }
+  if (!seen.size) {
+    list.innerHTML = '<p class="reasons">no scored employees yet</p>';
+    return;
+  }
+  const rows = [];
+  for (const id of seen) {
+    try {
+      const u = await apiGet(`/v1/insider/users/${encodeURIComponent(id)}`);
+      rows.push(u);
+    } catch (e) { /* not yet scored, skip */ }
+  }
+  rows.sort((a, b) => b.risk - a.risk);
+  list.innerHTML = rows.map((u) => `
+    <div class="userrow">
+      <div class="userrow-head">
+        <span>${u.employee_id} ${severityChip(u.severity)}</span>
+        <span class="meter"><div style="width:${Math.round(u.risk * 100)}%"></div></span>
+      </div>
+      <p class="narrative">${u.narrative}</p>
+    </div>`).join('');
+}
+
+$('refreshBtn').addEventListener('click', refresh);
+$('autoBtn').addEventListener('click', () => {
+  if (autoTimer) {
+    clearInterval(autoTimer);
+    autoTimer = null;
+    $('autoBtn').textContent = 'auto: off';
+  } else {
+    autoTimer = setInterval(refresh, 5000);
+    $('autoBtn').textContent = 'auto: on (5s)';
+  }
+});
+
+refresh();
+</script>
+</body>
+</html>
