@@ -1,11 +1,18 @@
 # Introduces RAKSHAK and the shortest reliable path to a running backend.
 # RAKSHAK
 
-RAKSHAK is a local-first malware and anomaly decision system with HTTP and gRPC APIs for a
-desktop operator client. Uploads/log lines go through a cascading orchestrator
-(`backend/orchestrator/`) that runs cheap detectors first and only escalates to expensive ones
-(a quantum-embedded SVM) for borderline cases. The active runtime lives under `backend/`; training
-and research code stay separate from request serving.
+RAKSHAK is a local-first decision backend (HTTP + gRPC) built around one cascading
+orchestrator (`backend/orchestrator/`) that runs cheap detectors first and only escalates to
+expensive ones for borderline cases. Two capabilities sit on top of that same core:
+
+- **Malware/log detection** - file and log-line scanning cascade (below).
+- **Insider-threat hunting** - a central node ingesting per-employee login/file-access/
+  data-transfer events from thin collector agents, baselining each employee against their
+  own history and scoring deviations with severity and a plain-language reason. See
+  "Insider-threat hunting" further down, and `hackathon/` for the full writeup.
+
+The active runtime lives under `backend/`; training and research code stay separate from
+request serving.
 
 Detectors, all real, all trained on real data (see `docs/results.md` for
 measured numbers):
@@ -111,6 +118,52 @@ curl -X POST http://localhost:8000/v1/scan/file \
   -H "x-api-key: dev-key" -F "file=@/path/to/sample.exe"
 ```
 
+## Insider-threat hunting
+
+One central RAKSHAK node, thin collector agents on each monitored machine forwarding
+login/file-access/data-transfer events - not one RAKSHAK per employee. Per-employee
+behavioral baselines, unsupervised anomaly scoring, severity with a plain-language reason.
+Full design in `hackathon/technical-approach.md`.
+
+```bash
+# generate simulated per-employee logs (a minority carry an injected insider pattern)
+python samples/insider/generate_employee_logs.py --employees 12 --insiders 3
+
+# central node
+rakshak-http
+
+# collector agent - tails the generated logs, forwards batches to the ingest endpoint
+python scripts/agent/collector.py --source samples/insider/logs --server http://127.0.0.1:8080 --once
+
+# severity-scored alert feed
+curl -H "x-api-key: dev-key" "http://127.0.0.1:8080/v1/insider/alerts?min_severity=high"
+
+# dashboard
+open http://127.0.0.1:8080/insider/dashboard
+```
+
+Real output from a run of the above (12 employees, 3 injected insider scenarios, seed 21):
+
+```
+$ python samples/insider/generate_employee_logs.py --employees 12 --insiders 3 --seed 21
+wrote 2496 events across 12 employees to samples/insider/logs
+injected insider scenarios: {'EMP004': 'resignation_exfil', 'EMP002': 'staged_exfil', 'EMP003': 'odd_hours_new_host'}
+hr signals: {'EMP004': 'resignation_submitted', 'EMP011': 'offboarding_scheduled (control - no anomalous behavior)'}
+
+$ curl -H "x-api-key: dev-key" http://127.0.0.1:8080/v1/insider/users/EMP004
+{
+  "employee_id": "EMP004", "risk": 1.0, "severity": "critical",
+  "narrative": "EMP004 is at critical risk (score 1.00), driven by file access activity.
+    Recent signals: activity outside normal working hours; elevated scrutiny: employee is
+    in a departing/offboarding or PIP window. ~46.4MB of activity in the trailing 14 days.",
+  "blast_radius_bytes": 48692661.5
+}
+```
+
+All 3 injected insiders (`EMP002`, `EMP003`, `EMP004`) were flagged critical; all 9 normal
+employees, including `EMP011` (an HR lifecycle signal with zero anomalous behavior, there
+specifically to prove the signal alone doesn't manufacture an alert), stayed low.
+
 ## Tests
 
 ```bash
@@ -119,8 +172,7 @@ python -m pytest -q
 ```
 
 See `docs/results.md`'s "Fixed along the way" section for what installing
-`pennylane`/`xgboost`/`lz4` here uncovered (and fixed) in code predating
-this backend work.
+`pennylane` here uncovered (and fixed) in the quantum feature map.
 
 ## Retraining detectors
 
@@ -142,9 +194,12 @@ backend/
   engine/
     models/       detector implementations (classical/, quantum/) + trained artifacts/
     features/     feature extraction shared by detectors
+    insider/      per-employee baseline, anomaly, risk, and alert engine
     sandbox/      read-only bwrap-isolated file analysis worker
     quarantine.py encrypted quarantine storage
 scripts/dev/      codegen + training scripts
+scripts/agent/    collector agent (runs on a monitored machine, not the central node)
+samples/insider/  simulated employee log generator for the insider-threat demo
 backend/api/gRPC/protos/  gRPC service definitions
 client-qt/        Qt desktop client (talks to the FastAPI backend over REST)
 ```

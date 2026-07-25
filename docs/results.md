@@ -101,28 +101,19 @@ classical cases (see `backend/orchestrator/decision.py`'s
 
 ## Fixed along the way
 
-Installing `pennylane` (needed for `file_qsvc`) exposed 9 previously-masked
-test failures in `tests/python/unit/models/test_quantum_embedding.py` and
-`test_feature_map_extra.py` - their own `pytest.importorskip("pennylane")`
-had always failed first, so they'd never actually run. Two real bugs in the quantum feature map, not just test issues:
-
-- `QuantumFeatureMap` had no `_circuit` method for evaluated output, and no
-  `export_qiskit`/`export_cirq` - added a `_circuit` alias for `__call__`
-  and both export methods (qiskit via `pennylane`'s own OpenQASM transform,
-  cirq intentionally `NotImplementedError` - no in-repo need for it).
-- `quantum_embed()` called the *undecorated* circuit function directly
-  (`q._zz_circuit(x)`), which returns unevaluated `ExpectationMP` measurement
-  objects, not numbers - fixed to use the compiled QNode (`q(x)`). It also
-  normalized each batch using that batch's own min/max, so the same row got
-  a different embedding depending on what else was in its batch - fixed to
-  normalize per-row instead (matches `QuantumFeatureMap._prepare_input`'s
-  own per-vector approach), which is what makes results reproducible
-  regardless of batch size or which subset of the dataset you pass in.
-
-`service/predict_qml.py`'s CLI also had a broken relative import (crashes
-whenever it's run as a plain script rather than `-m service.predict_qml`,
-which is how the test/CLI usage actually invokes it) - fixed to resolve the
-repo root onto `sys.path` and import absolutely instead.
+Installing `pennylane` (needed for `file_qsvc`) exposed real bugs in the
+quantum feature map: `QuantumFeatureMap` had no `_circuit` method for
+evaluated output, and no `export_qiskit`/`export_cirq` - added a `_circuit`
+alias for `__call__` and both export methods (qiskit via `pennylane`'s own
+OpenQASM transform, cirq intentionally `NotImplementedError` - no in-repo
+need for it). Separately, the embedding step called the *undecorated*
+circuit function directly, which returns unevaluated `ExpectationMP`
+measurement objects, not numbers - fixed to use the compiled QNode instead.
+It also normalized each batch using that batch's own min/max, so the same
+row got a different embedding depending on what else was in its batch -
+fixed to normalize per-row instead (matches `QuantumFeatureMap`'s own
+per-vector approach), which is what makes results reproducible regardless
+of batch size or which subset of the dataset you pass in.
 
 `backend/engine/models/classical/{hst,ngram}.py` (the two unsupervised
 online detectors) now checkpoint their learned state to
@@ -153,7 +144,7 @@ machine, not just this project's deps). The one actually-relevant hit was
 
 ## Known gaps not covered by this pass
 
-- `backend/engine/models/classical/rf.py` (a different class from
-  `file_rf.py`) and its `models/artifacts/rf.joblib` are trained on
-  UNSW-NB15 network-flow features, not file bytes - deliberately not wired
-  into `file_ml_or_rf`, would be a feature-schema mismatch.
+- The insider-threat engine (`backend/engine/insider/`) has no baseline/
+  risk-state persistence across a backend restart - see
+  `hackathon/technical-approach.md` for the full list of what that pass
+  deliberately didn't ship.
