@@ -10,7 +10,9 @@ from .registry import get_registry
 
 logger = logging.getLogger(__name__)
 
-ArtifactKind = Literal["log", "file"]
+ArtifactKind = Literal[
+    "log", "file", "insider_login", "insider_file_access", "insider_transfer", "insider_hr_signal",
+]
 
 
 @dataclass
@@ -26,9 +28,19 @@ class RoutePlan:
     sequence: List[str]
 
 
+_INSIDER_ROUTES = {
+    "insider_login": RoutePlan("insider_login", ["insider_login_baseline"]),
+    "insider_file_access": RoutePlan("insider_file_access", ["insider_file_baseline"]),
+    "insider_transfer": RoutePlan("insider_transfer", ["insider_transfer_baseline"]),
+    "insider_hr_signal": RoutePlan("insider_hr_signal", ["insider_hr_signal"]),
+}
+
+
 def choose_route_for(kind: ArtifactKind) -> RoutePlan:
     if kind == "log":
         return RoutePlan("log_fastpath", ["log_ngram", "log_hst", "log_sgd"])
+    if kind in _INSIDER_ROUTES:
+        return _INSIDER_ROUTES[kind]
     # Note: sandbox signal is a cheap mid-stage nudge. file_dynamic_signal only
     # does real work when RAKSHAK_SANDBOX_ADAPTER=dynamic is set (otherwise ctx
     # has no dynamic_* keys and it returns instantly) - placed after the cheap
@@ -57,7 +69,12 @@ class Router:
 
     async def decide(self, ev: Event) -> Decision:
         plan = choose_route_for(ev.kind)
-        budget_ms = self.budgets.LOG_MS if ev.kind == "log" else self.budgets.FILE_INIT_MS
+        if ev.kind == "log":
+            budget_ms = self.budgets.LOG_MS
+        elif ev.kind in _INSIDER_ROUTES:
+            budget_ms = self.budgets.INSIDER_MS
+        else:
+            budget_ms = self.budgets.FILE_INIT_MS
 
         decisions: List[Decision] = []
         spent = 0.0

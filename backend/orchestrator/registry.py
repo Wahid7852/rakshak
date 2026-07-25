@@ -28,6 +28,9 @@ FST = _try_import("backend.engine.features.file_static_triage", "file_static_tri
 FILE_RF = _try_import("backend.engine.models.classical.file_rf", "file_rf")
 QSV = _try_import("backend.engine.models.quantum.qsvc", "qsvc")
 
+# Insider threat hunting (login/file-access/data-transfer baselines)
+INSIDER = _try_import("backend.engine.insider.pipeline", "pipeline")
+
 
 class Detector(Protocol):
     name: str
@@ -160,5 +163,25 @@ def get_registry() -> Dict[str, Detector]:
 
     # Quantum few-shot fallback (optional, auto-disabled if not present)
     reg["file_qsvc"] = QSV.Detector() if QSV and hasattr(QSV, "Detector") else _neutral("file_qsvc")
+
+    # -------- Insider threat (login / file access / data transfer) --------
+    # One InsiderDetector instance per subtype, each holding its own per-employee
+    # baseline/anomaly/risk state - see backend/engine/insider/pipeline.py.
+    for kind_name, subtype in (
+        ("insider_login_baseline", "login"),
+        ("insider_file_baseline", "file_access"),
+        ("insider_transfer_baseline", "data_transfer"),
+    ):
+        if INSIDER and hasattr(INSIDER, "InsiderDetector"):
+            reg[kind_name] = INSIDER.InsiderDetector(subtype, kind_name)
+        else:
+            reg[kind_name] = _neutral(kind_name)
+
+    # hr_signal events don't score a baseline - they just update lifecycle
+    # state the other three insider detectors read (see pipeline.py).
+    if INSIDER and hasattr(INSIDER, "InsiderHrSignalDetector"):
+        reg["insider_hr_signal"] = INSIDER.InsiderHrSignalDetector()
+    else:
+        reg["insider_hr_signal"] = _neutral("insider_hr_signal")
 
     return reg

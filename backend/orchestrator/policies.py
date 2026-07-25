@@ -8,6 +8,7 @@ class Budgets:
     LOG_MS: int = 5              # per log event (target p95)
     FILE_INIT_MS: int = 50       # early file decision
     FILE_TOTAL_MS: int = 250     # total incl. sandbox enrich
+    INSIDER_MS: int = 5          # per insider event (single baseline detector, target p95)
 
 
 @dataclass(frozen=True)
