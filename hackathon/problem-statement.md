@@ -4,49 +4,42 @@
 
 ## Assigned theme
 
-**Theme 2 (Quantum Machine Learning for Threat Detection)**
-*"Quantum Malware Hunter & AI + Quantum = Early Ransomware Detection"*
+**Problem Statement 1: Autonomous Threat Hunter for Insider Attacks**
 
-> Use quantum-enhanced ML to detect unknown malware patterns in real-time. Build a hybrid
-> AI system (classical + quantum) that predicts ransomware deployment patterns from user
-> behavior logs.
-
-Suggested dataset: simulated network traffic or malware signatures.
+> Insider threats are among the hardest to detect because the activity often resembles
+> normal behavior right up until damage is done - an employee quietly accessing sensitive
+> files before resignation, or data being moved out in small, disguised increments.
+>
+> Build a system that ingests simulated organizational logs (login activity, file access,
+> data transfers) and uses behavioral baselining to identify insider threats. The system
+> should minimize false positives by relying on anomaly detection rather than static,
+> rule-based triggers alone.
 
 ## The gap
 
-Signature and blacklist-based detection only catches what it has already seen. Ransomware
-and novel malware families are built specifically to slip past that: a new packer, a new
-hash, a slightly mutated binary, and a purely signature-based tool is blind. By the time a
-payload actually executes and starts encrypting files, the useful window for intervention
-has already closed. AV-TEST tracks roughly 450,000 new malware samples surfacing daily;
-volume alone rules out anything that depends on humans curating signatures fast enough.
+An insider isn't running exploit code a signature can match, and there's no labeled
+dataset of "insider attacks" the way there is for network intrusions or malware families -
+the same person's badge-in, file open, and file copy look identical whether they're doing
+their job or staging an exit. Two failures compound this:
 
-Two separate failures compound this:
+1. **Rule-based triggers can't tell "unusual for anyone" from "unusual for this person."**
+   A flat threshold ("more than N files/hour") either fires constantly for anyone whose job
+   involves bulk access, or misses a quiet, gradual pattern that never crosses the global
+   line. The PS is explicit about this: false positives have to come down by comparing
+   behavior to the *individual's own normal*, not a office-wide rule.
+2. **There's nothing to supervise-learn against.** Insider incidents are rare, mostly
+   undisclosed, and each org's "normal" is different - a labeled training set doesn't
+   really exist. Any system that requires one is answering a different, easier problem.
 
-1. **Classical-only ML plateaus on borderline cases.** A single classical model either
-   overfits to its training distribution or produces a lot of false positives when pushed
-   to catch genuinely novel patterns. There's no cheap way to say "I'm not sure, escalate
-   this one." Sommer and Paxson's 2010 IEEE S&P survey made this point about network
-   intrusion detection specifically: classical ML struggles to generalize past what it was
-   trained on, which is exactly the failure mode a defence-grade system can't afford.
-2. **Most quantum-security demos are quantum-only toy models.** They run a quantum circuit
-   over a small illustrative dataset and stop there, with no real classical backbone, no
-   real-time constraint, no actual system a security operator could run. That's a research
-   notebook, not a threat detector.
-
-Ransomware in particular has a shape before it detonates: mass file touches, authentication
-anomalies, privilege-escalation attempts, unusual process bursts, all visible in ordinary
-user/system behavior logs, minutes before the encryption payload runs. A system that scores
-that behavior stream in real time, and knows when to escalate an ambiguous case to a more
-expensive (quantum) judgment, is the correct shape of answer to this theme.
+The PS background names the exact shape of the threat: sensitive-file access that quietly
+increases before a resignation, and data moved out in small, individually unremarkable
+increments rather than one obvious bulk exfil.
 
 ## Who this is for
 
-Security operators in high-assurance, air-gapped, or near-air-gapped environments, where
-the cost of a miss isn't measured in dollars and there's zero tolerance for a cloud
-dependency or an option to just "send the sample to a vendor and wait." Any credible
-answer has to run entirely local, entirely offline, on hardware the operator already
-controls. The same design serves any security operator or small team with the same
-constraint, but the bar RAKSHAK is built against is the high-assurance one, not a
-consumer one.
+A security team monitoring an organization's endpoints from one place - not an
+employee-facing tool, and not something installed with detection logic on every machine.
+The architecture question the PS forces is *where does the analysis happen*: RAKSHAK
+answers it as one central node doing the baselining/scoring/alerting, fed by thin
+collector agents on each monitored machine that only forward events. See
+`solution-overview.md` for why that split matters and what it rules out.
