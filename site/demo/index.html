@@ -102,7 +102,7 @@
   .demo-foot { padding: 0.8rem 1.1rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); }
 
   .shot-figure { margin: 0; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; background: var(--paper-raised); }
-  .shot-figure img { display: block; width: 100%; height: auto; }
+  .shot-figure img, .shot-figure video { display: block; width: 100%; height: auto; }
   .shot-figure figcaption { padding: 0.7rem 1.1rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); }
 
   .sandbox { background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 3px; padding: 1.2rem 1.3rem; }
@@ -200,12 +200,17 @@
     <div class="wrap">
       <p class="eyebrow">the actual product</p>
       <h2>Not a mockup, this is what the backend serves</h2>
-      <p class="lede">A screenshot of the real <code>/insider/dashboard</code> page, same server, same run as
-        the ledger below, filtered to critical severity. Confirm/dismiss on each row is the live analyst
-        feedback loop, not decoration.</p>
+      <p class="lede">A real recorded session against the real <code>/insider/dashboard</code> page, same
+        server, same run as the ledger below: widen the filter, scroll the risk panel, narrow to critical,
+        confirm an alert through the live analyst feedback loop. Nothing here is scripted output, it's a
+        screen capture of an actual browser talking to an actual backend.</p>
       <figure class="shot-figure">
-        <img src="../assets/dashboard-screenshot.png" alt="RAKSHAK's real insider-threat dashboard, showing critical-severity alerts and an employees-by-risk panel with plain-language narratives" loading="lazy" width="1440" height="735">
-        <figcaption>backend/api/static/insider_dashboard.html, served locally, captured from a real ingest run</figcaption>
+        <video src="../assets/dashboard-demo.mp4" poster="../assets/dashboard-screenshot.png" width="1280" height="720" autoplay muted loop playsinline controls preload="metadata">
+          <source src="../assets/dashboard-demo.webm" type="video/webm">
+          <source src="../assets/dashboard-demo.mp4" type="video/mp4">
+          <img src="../assets/dashboard-screenshot.png" alt="RAKSHAK's real insider-threat dashboard, showing critical-severity alerts and an employees-by-risk panel with plain-language narratives">
+        </video>
+        <figcaption>backend/api/static/insider_dashboard.html, screen-recorded locally against a real ingest run, 13s, no audio</figcaption>
       </figure>
     </div>
   </section>
@@ -665,6 +670,12 @@
     Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { io.observe(el); });
   } else {
     Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { el.classList.add('visible'); });
+  }
+
+  var demoVideo = document.querySelector('.shot-figure video');
+  if (demoVideo && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    demoVideo.removeAttribute('autoplay');
+    demoVideo.pause();
   }
 })();
 </script>
