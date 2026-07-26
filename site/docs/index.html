@@ -270,6 +270,22 @@ open http://127.0.0.1:8080/insider/dashboard</code></pre>
 
   <section>
     <div class="wrap">
+      <p class="eyebrow">security controls</p>
+      <h2>What's enforced, and where</h2>
+      <p class="lede">The exact files, not a policy page. Every control here runs in CI on every push.</p>
+      <ul class="req-list">
+        <li><code>backend/api/security/auth.py</code> - <code>x-api-key</code> required on every route except <code>/health</code> and <code>/v1/healthz</code></li>
+        <li><code>backend/api/security/rate_limit.py</code> - per-endpoint limits keyed by API key (insider ingest defaults to 120/min, overridable via <code>RAKSHAK_RATE_INSIDER_INGEST</code>)</li>
+        <li><code>backend/engine/quarantine.py</code> - Fernet-encrypted at rest, original only deleted after the encrypted copy round-trips; <code>cryptography&gt;=44.0.1</code>, pinned past its own disclosed CVEs</li>
+        <li><code>backend/engine/sandbox/runner.py</code> - static file analysis in a read-only, namespace-isolated jail, never executes the sample; degrades to a stricter fallback rather than failing open when the jail is unavailable</li>
+        <li><code>backend/engine/insider/narrative.py</code> - template composition only, no LLM or cloud call, nothing about an employee's behavior leaves the machine</li>
+        <li><code>.github/workflows/ci.yml</code> - bandit (SAST) and gitleaks (secrets) block the pipeline on real findings; pip-audit checks every dependency on every run</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
       <p class="eyebrow">repo layout</p>
       <h2>Where things live</h2>
       <pre><code>backend/
@@ -292,10 +308,10 @@ site/             this site</code></pre>
       <p class="eyebrow">further reading</p>
       <h2>Full docs, in the repo</h2>
       <div class="doclinks">
-        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">ARCHITECTURE.md</a><p>The full malware/log decision cascade, mermaid diagrams included.</p></div>
-        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/API.md" target="_blank" rel="noopener">API.md</a><p>The malware-scan HTTP/gRPC contract, auth, rate limits, runtime variables.</p></div>
-        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/getting-started.md" target="_blank" rel="noopener">getting-started.md</a><p>Install, run, test - Windows and Linux.</p></div>
-        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/hackathon/technical-approach.md" target="_blank" rel="noopener">technical-approach.md</a><p>The insider-engine design writeup, including what it deliberately doesn't do yet.</p></div>
+        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/master/docs/ARCHITECTURE.md" target="_blank" rel="noopener">ARCHITECTURE.md</a><p>The full malware/log decision cascade, mermaid diagrams included.</p></div>
+        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/master/docs/API.md" target="_blank" rel="noopener">API.md</a><p>The malware-scan HTTP/gRPC contract, auth, rate limits, runtime variables.</p></div>
+        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/master/docs/getting-started.md" target="_blank" rel="noopener">getting-started.md</a><p>Install, run, test - Windows and Linux.</p></div>
+        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/master/hackathon/technical-approach.md" target="_blank" rel="noopener">technical-approach.md</a><p>The insider-engine design writeup, including what it deliberately doesn't do yet.</p></div>
       </div>
     </div>
   </section>

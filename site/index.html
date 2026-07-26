@@ -196,6 +196,40 @@
 
   <section>
     <div class="wrap">
+      <p class="eyebrow">why this approach</p>
+      <h2>Insiders don't trip signatures</h2>
+      <div class="prose">
+        <p>An insider isn't running exploit code a signature can match, and there's no labeled dataset of
+          "insider attacks" the way there is for malware families or network intrusions. The same badge-in,
+          file-open, and file-copy look identical whether someone's doing their job or staging an exit.</p>
+        <p>A flat threshold answers the wrong question: "more than N files an hour" either fires constantly
+          for anyone whose job involves bulk access, or misses a quiet pattern that never crosses the global
+          line. The only question that actually separates the two is whether this is unusual for
+          <em>this person</em>, which is why the whole system is built around a baseline per employee, not a
+          rule for the office.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">who it's for</p>
+      <h2>One screen, not a tool on every desk</h2>
+      <div class="prose">
+        <p>A security team watching an organization's endpoints from one place, not an employee-facing tool,
+          and not something installed with detection logic on every machine. One central node does the
+          baselining, scoring, and alerting; thin collector agents on each monitored machine only forward
+          events.</p>
+        <p>That split matters for who can actually run this: an org already collecting login, file-access,
+          and transfer logs, without a dedicated data-science team on hand to build and retrain a supervised
+          model, since the anomaly engine calibrates from the traffic it sees and never needs a labeled
+          training set to start.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
       <p class="eyebrow">beyond the brief</p>
       <h2>Five things the brief didn't ask for</h2>
       <div class="addenda">
@@ -227,6 +261,53 @@
           <div><h3>Blast radius &amp; time-to-critical</h3>
             <p>How much sensitive activity moved in the trailing two weeks, and a projected days-to-critical
               at the current rate.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">security</p>
+      <h2>What's actually enforced, not claimed</h2>
+      <p class="lede">Same discipline the detection engine gets, applied to the system carrying employee
+        behavioral data. Every item below is a real control in the codebase, not a policy statement.</p>
+      <div class="addenda">
+        <div class="addendum">
+          <div class="mark">AUTH</div>
+          <div><h3>Key on every route</h3>
+            <p>Every endpoint except the two health checks requires an <code>x-api-key</code> header, over
+              both HTTP and gRPC.</p></div>
+        </div>
+        <div class="addendum">
+          <div class="mark">RATE</div>
+          <div><h3>Per-key rate limits</h3>
+            <p>Ingest and scan endpoints are capped (120/min on insider ingest by default), keyed by API key
+              rather than raw IP so proxied clients don't throttle each other.</p></div>
+        </div>
+        <div class="addendum">
+          <div class="mark">CRYPT</div>
+          <div><h3>Encrypted quarantine</h3>
+            <p>A confirmed-malicious file is encrypted at rest before it's stored; the original is only
+              deleted after the encrypted copy round-trips clean.</p></div>
+        </div>
+        <div class="addendum">
+          <div class="mark">SANDBOX</div>
+          <div><h3>Isolated, read-only analysis</h3>
+            <p>Static file analysis runs inside a namespace-isolated jail and never executes the sample; a
+              missing sandbox degrades to a stricter fallback instead of failing open.</p></div>
+        </div>
+        <div class="addendum">
+          <div class="mark">LOCAL</div>
+          <div><h3>Nothing leaves the machine</h3>
+            <p>Narrative generation and every scoring step run locally and compose from numbers already
+              computed; no employee behavioral data goes to a cloud API.</p></div>
+        </div>
+        <div class="addendum">
+          <div class="mark">SCAN</div>
+          <div><h3>Gated on every push</h3>
+            <p>Static analysis and secret-scanning block CI on real findings, dependencies are audited for
+              known CVEs, and the crypto library is pinned past its own disclosed vulnerabilities.</p></div>
         </div>
       </div>
     </div>
