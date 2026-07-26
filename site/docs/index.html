@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Docs — RAKSHAK</title>
+<title>Docs - RAKSHAK</title>
 <meta name="description" content="RAKSHAK insider-threat engine: architecture, requirements, quickstart, and the real API surface.">
 <style>
   :root {
-    --paper: #F2EDE0; --paper-raised: #EAE3D1; --ink: #211D15; --ink-soft: #6B6252; --ink-faint: #8C8267;
+    --paper: #F2EDE0; --paper-raised: #EAE3D1; --ink: #211D15; --ink-soft: #6B6252; --ink-faint: #726852;
     --rule: #C9BFA0; --rule-strong: #A79A78; --stamp: #A23B2E; --stamp-ink: #F2EDE0; --confirmed: #2E4A3B;
     --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
     --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Courier New", monospace;
@@ -29,6 +29,9 @@
   a { color: inherit; }
   a:focus-visible, button:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
   .tnum { font-variant-numeric: tabular-nums; }
 
@@ -55,10 +58,14 @@
   section:last-of-type { border-bottom: none; }
   .eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stamp); margin: 0 0 0.7rem; }
   h2 { font-size: clamp(1.4rem, 3vw, 1.7rem); margin: 0 0 1rem; text-wrap: balance; font-weight: 600; }
-  .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.4rem; }
+  .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.4rem; text-align: justify; hyphens: auto; text-justify: inter-word; }
   code { font-family: var(--mono); font-size: 0.92em; background: var(--paper-raised); padding: 0.1em 0.35em; border-radius: 2px; }
   pre { font-family: var(--mono); font-size: 0.84rem; background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 3px; padding: 1rem 1.1rem; overflow-x: auto; line-height: 1.55; }
   pre code { background: none; padding: 0; }
+  .pre-wrap { position: relative; }
+  .copy-btn { position: absolute; top: 0.6rem; right: 0.6rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.28rem 0.6rem; border-radius: 2px; border: 1px solid var(--rule-strong); background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+  .copy-btn:hover { border-color: var(--stamp); color: var(--stamp); }
+  .copy-btn.copied { border-color: var(--confirmed); color: var(--confirmed); }
 
   /* ---------- architecture diagram ---------- */
   .arch { display: flex; flex-direction: column; }
@@ -89,7 +96,7 @@
   .doclinks .doclink:first-child { border-top: none; }
   .doclink a { font-family: var(--mono); font-size: 0.86rem; text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
   .doclink a:hover { border-color: var(--stamp); color: var(--stamp); }
-  .doclink p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); }
+  .doclink p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); text-align: justify; hyphens: auto; text-justify: inter-word; }
 
   .page-nav { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.82rem; padding: 1.5rem 0; }
   .page-nav a { text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
@@ -123,7 +130,7 @@
     <div class="wrap">
       <p class="case-no">reference</p>
       <h1 class="title">How it's actually built.</h1>
-      <p class="dek">The real path an event takes from a monitored machine to a scored, explained alert —
+      <p class="dek">The real path an event takes from a monitored machine to a scored, explained alert,
         plus what you need to run it and the API surface that's actually live.</p>
     </div>
   </section>
@@ -133,7 +140,7 @@
       <p class="eyebrow">architecture</p>
       <h2>The insider-threat path</h2>
       <p class="lede">Not the malware/log cascade (that's a separate pipeline, documented in the repo's own
-        <code>docs/ARCHITECTURE.md</code>) — this is specifically how a login/file-access/data-transfer/HR
+        <code>docs/ARCHITECTURE.md</code>) - this is specifically how a login/file-access/data-transfer/HR
         event becomes a scored alert, module by real module.</p>
 
       <div class="arch">
@@ -145,7 +152,7 @@
         </div>
         <div class="arch-arrow">↓ HTTP POST, <code style="font-size:0.85em">x-api-key</code></div>
 
-        <p class="arch-lane-label">central node — ingest</p>
+        <p class="arch-lane-label">central node - ingest</p>
         <div class="arch-stage">
           <div class="t">POST /v1/insider/ingest</div>
           <div class="d">Validates the batch, maps each event's <code style="font-size:0.85em">event_type</code> to an orchestrator artifact kind.</div>
@@ -189,7 +196,7 @@
         <div class="arch-arrow">↓</div>
         <div class="arch-stage">
           <div class="t">Narrative</div>
-          <div class="d">Template composition into one plain-language paragraph, grounded strictly in the computed reasons above — no LLM call, nothing invented.</div>
+          <div class="d">Template composition into one plain-language paragraph, grounded strictly in the computed reasons above - no LLM call, nothing invented.</div>
           <div class="p">narrative.py</div>
         </div>
         <div class="arch-arrow">↓</div>
@@ -209,10 +216,10 @@
       <p class="eyebrow">requirements</p>
       <h2>What you need</h2>
       <ul class="req-list">
-        <li><code>Python ≥3.11</code> — the only hard requirement for the backend and test suite.</li>
-        <li><code>bubblewrap (bwrap)</code> — optional, for the sandboxed static-analysis step on the malware side only; falls back to a degraded rlimit-only mode with a logged warning if missing. Not needed for the insider-threat engine at all.</li>
-        <li><code>pip install -e ".[quantum]"</code> — optional, only needed to run <code>file_qsvc</code> for real on the malware side.</li>
-        <li><code>pip install -e ".[dev]"</code> — pytest, ruff, mypy, bandit, pip-audit, for running the test suite.</li>
+        <li><code>Python ≥3.11</code> - the only hard requirement for the backend and test suite.</li>
+        <li><code>bubblewrap (bwrap)</code> - optional, for the sandboxed static-analysis step on the malware side only; falls back to a degraded rlimit-only mode with a logged warning if missing. Not needed for the insider-threat engine at all.</li>
+        <li><code>pip install -e ".[quantum]"</code> - optional, only needed to run <code>file_qsvc</code> for real on the malware side.</li>
+        <li><code>pip install -e ".[dev]"</code> - pytest, ruff, mypy, bandit, pip-audit, for running the test suite.</li>
       </ul>
     </div>
   </section>
@@ -221,13 +228,15 @@
     <div class="wrap">
       <p class="eyebrow">quickstart</p>
       <h2>Run it yourself</h2>
-      <pre><code># generate simulated per-employee logs (a minority carry an injected insider pattern)
+      <div class="pre-wrap">
+      <button type="button" class="copy-btn" id="copyQuickstart">copy</button>
+      <pre id="quickstartCode"><code># generate simulated per-employee logs (a minority carry an injected insider pattern)
 python samples/insider/generate_employee_logs.py --employees 12 --insiders 3
 
 # central node
 rakshak-http
 
-# collector agent — tails the generated logs, forwards batches to the ingest endpoint
+# collector agent - tails the generated logs, forwards batches to the ingest endpoint
 python scripts/agent/collector.py --source samples/insider/logs --server http://127.0.0.1:8080 --once
 
 # severity-scored alert feed
@@ -235,6 +244,7 @@ curl -H "x-api-key: dev-key" "http://127.0.0.1:8080/v1/insider/alerts?min_severi
 
 # dashboard
 open http://127.0.0.1:8080/insider/dashboard</code></pre>
+      </div>
     </div>
   </section>
 
@@ -243,7 +253,7 @@ open http://127.0.0.1:8080/insider/dashboard</code></pre>
       <p class="eyebrow">API reference</p>
       <h2>The insider-threat routes</h2>
       <p class="lede">All under the <code>/v1</code> prefix and behind <code>x-api-key</code> except the
-        dashboard page itself. This table doesn't exist anywhere else in the repo yet — <code>docs/API.md</code>
+        dashboard page itself. This table doesn't exist anywhere else in the repo yet - <code>docs/API.md</code>
         only documents the malware-scan routes today.</p>
       <table class="api-table">
         <thead><tr><th>method</th><th>path</th><th>purpose</th><th>auth</th></tr></thead>
@@ -284,7 +294,7 @@ site/             this site</code></pre>
       <div class="doclinks">
         <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">ARCHITECTURE.md</a><p>The full malware/log decision cascade, mermaid diagrams included.</p></div>
         <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/API.md" target="_blank" rel="noopener">API.md</a><p>The malware-scan HTTP/gRPC contract, auth, rate limits, runtime variables.</p></div>
-        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/getting-started.md" target="_blank" rel="noopener">getting-started.md</a><p>Install, run, test — Windows and Linux.</p></div>
+        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/getting-started.md" target="_blank" rel="noopener">getting-started.md</a><p>Install, run, test - Windows and Linux.</p></div>
         <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/hackathon/technical-approach.md" target="_blank" rel="noopener">technical-approach.md</a><p>The insider-engine design writeup, including what it deliberately doesn't do yet.</p></div>
       </div>
     </div>
@@ -327,6 +337,37 @@ site/             this site</code></pre>
     applyTheme(next);
     try { localStorage.setItem('rakshak-theme', next); } catch (e) {}
   });
+})();
+</script>
+<script>
+(function () {
+  var targets = document.querySelectorAll('main > section, main > .cover');
+  targets.forEach ? targets.forEach(addReveal) : Array.prototype.forEach.call(targets, addReveal);
+  function addReveal(el) { el.classList.add('reveal'); }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { io.observe(el); });
+  } else {
+    Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { el.classList.add('visible'); });
+  }
+
+  var copyBtn = document.getElementById('copyQuickstart');
+  var codeEl = document.getElementById('quickstartCode');
+  if (copyBtn && codeEl && navigator.clipboard) {
+    copyBtn.addEventListener('click', function () {
+      navigator.clipboard.writeText(codeEl.textContent).then(function () {
+        copyBtn.textContent = 'copied';
+        copyBtn.classList.add('copied');
+        setTimeout(function () { copyBtn.textContent = 'copy'; copyBtn.classList.remove('copied'); }, 1600);
+      });
+    });
+  } else if (copyBtn) {
+    copyBtn.style.display = 'none';
+  }
 })();
 </script>
 </body>

@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Live demo — RAKSHAK</title>
+<title>Live demo - RAKSHAK</title>
 <meta name="description" content="A real captured run of RAKSHAK's insider-threat engine: 14 employees, 4 injected insiders, all caught. Replayed client-side, not a hosted backend.">
 <style>
   :root {
-    --paper: #F2EDE0; --paper-raised: #EAE3D1; --ink: #211D15; --ink-soft: #6B6252; --ink-faint: #8C8267;
+    --paper: #F2EDE0; --paper-raised: #EAE3D1; --ink: #211D15; --ink-soft: #6B6252; --ink-faint: #726852;
     --rule: #C9BFA0; --rule-strong: #A79A78; --stamp: #A23B2E; --stamp-ink: #F2EDE0; --confirmed: #2E4A3B;
-    --sev-low: #6B6252; --sev-medium: #A9781F; --sev-high: #B85420; --sev-critical: #A23B2E;
+    --sev-low: #6B6252; --sev-medium: #8A5E16; --sev-high: #9C4419; --sev-critical: #A23B2E;
     --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
     --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Courier New", monospace;
   }
@@ -32,6 +32,9 @@
   a { color: inherit; }
   a:focus-visible, button:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
   .tnum { font-variant-numeric: tabular-nums; }
 
@@ -55,13 +58,13 @@
   .dek { font-size: clamp(1rem, 2.1vw, 1.1rem); color: var(--ink-soft); max-width: 620px; margin: 0; text-wrap: pretty; }
   .honesty-strip { display: flex; gap: 0.6rem; align-items: flex-start; margin-top: 1.4rem; padding: 0.75rem 1rem; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper-raised); max-width: 620px; }
   .honesty-strip .mk { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--stamp); white-space: nowrap; padding-top: 0.1rem; }
-  .honesty-strip p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); }
+  .honesty-strip p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); text-align: justify; hyphens: auto; text-justify: inter-word; }
 
   section { padding: clamp(2.2rem, 5vw, 3.6rem) 0; border-bottom: 1px solid var(--rule); }
   section:last-of-type { border-bottom: none; }
   .eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stamp); margin: 0 0 0.7rem; }
   h2 { font-size: clamp(1.4rem, 3vw, 1.7rem); margin: 0 0 1rem; text-wrap: balance; font-weight: 600; }
-  .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.4rem; }
+  .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.4rem; text-align: justify; hyphens: auto; text-justify: inter-word; }
 
   .demo { background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
   .demo-head { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--rule); }
@@ -88,6 +91,37 @@
   .narrative-row .stat-line { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-faint); margin-top: 0.5rem; letter-spacing: 0.02em; }
   .demo-foot { padding: 0.8rem 1.1rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); }
 
+  .sandbox { background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 3px; padding: 1.2rem 1.3rem; }
+  .sandbox-presets { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+  .sandbox-presets button { font-family: var(--mono); font-size: 0.74rem; padding: 0.4rem 0.8rem; border-radius: 2px; border: 1px solid var(--rule-strong); background: transparent; color: var(--ink-soft); cursor: pointer; }
+  .sandbox-presets button:hover { border-color: var(--stamp); color: var(--stamp); }
+  .sandbox-caption { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-faint); margin: 0 0 1rem; }
+  .sandbox-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1.6rem; }
+  @media (max-width: 720px) { .sandbox-grid { grid-template-columns: 1fr; } }
+  .sandbox-toggles { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin-bottom: 1.1rem; }
+  .sandbox-toggle { display: flex; align-items: center; gap: 0.4rem; font-family: var(--mono); font-size: 0.74rem; color: var(--ink-soft); cursor: pointer; }
+  .sandbox-toggle input { accent-color: var(--stamp); }
+  .sandbox-field { margin-bottom: 0.9rem; }
+  .sandbox-field label { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.74rem; color: var(--ink-soft); margin-bottom: 0.3rem; }
+  .sandbox-field label .val { color: var(--ink); font-weight: 700; }
+  .sandbox-field input[type=range] { width: 100%; accent-color: var(--stamp); }
+  .sandbox-pending { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); min-height: 1.3em; margin: 0.4rem 0 1rem; }
+  .sandbox-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .sandbox-actions button { font-family: var(--mono); font-size: 0.78rem; padding: 0.5rem 0.9rem; border-radius: 2px; border: 1px solid var(--ink); cursor: pointer; }
+  .sandbox-actions .add { background: var(--stamp); border-color: var(--stamp); color: var(--stamp-ink); }
+  .sandbox-actions .decay, .sandbox-actions .reset { background: transparent; color: var(--ink); border-color: var(--rule-strong); }
+  .sandbox-readout { border-left: 1px solid var(--rule); padding-left: 1.6rem; }
+  @media (max-width: 720px) { .sandbox-readout { border-left: none; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 1.2rem; } }
+  .sandbox-risk-row { display: flex; align-items: baseline; gap: 0.8rem; margin-bottom: 0.6rem; }
+  .sandbox-risk-num { font-family: var(--mono); font-size: 2rem; font-weight: 700; }
+  .sandbox-meter { height: 8px; background: var(--rule); border-radius: 999px; overflow: hidden; margin-bottom: 1.1rem; }
+  .sandbox-meter > div { height: 100%; background: var(--stamp); transition: width 0.4s ease; }
+  .sandbox-log { list-style: none; margin: 0 0 1rem; padding: 0; font-size: 0.86rem; max-height: 220px; overflow-y: auto; }
+  .sandbox-log li { padding: 0.5rem 0; border-top: 1px solid var(--rule); color: var(--ink-soft); }
+  .sandbox-log li:first-child { border-top: none; }
+  .sandbox-log .empty { color: var(--ink-faint); font-style: italic; }
+  .sandbox-scope { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); margin: 0; padding-top: 0.8rem; border-top: 1px dashed var(--rule-strong); }
+
   .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
   .flow-step { padding: 1.1rem 1.15rem; border-right: 1px solid var(--rule); background: var(--paper-raised); }
   .flow-step:last-child { border-right: none; }
@@ -102,7 +136,7 @@
   .bugfix h4 { margin: 0 0 0.3rem; font-size: 0.9rem; font-family: var(--mono); letter-spacing: 0.02em; }
   .bugfix .bad h4 { color: var(--sev-critical); }
   .bugfix .good h4 { color: var(--confirmed); }
-  .bugfix p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); }
+  .bugfix p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); text-align: justify; hyphens: auto; text-justify: inter-word; }
   @media (max-width: 640px) { .bugfix-row { grid-template-columns: 1fr; gap: 0.6rem; } }
 
   .page-nav { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.82rem; padding: 1.5rem 0; }
@@ -142,7 +176,7 @@
       <div class="honesty-strip">
         <span class="mk">note</span>
         <p>This page replays real output captured from one full run of the system. It is not a live
-          backend — there's nothing running behind this page to talk to. The actual backend, and the
+          backend - there's nothing running behind this page to talk to. The actual backend, and the
           commands to run it yourself, are in the repo and on the <a href="../docs/" style="color:inherit">docs page</a>.</p>
       </div>
     </div>
@@ -177,6 +211,76 @@
 
   <section>
     <div class="wrap">
+      <p class="eyebrow">try it</p>
+      <h2>Feed it an event, watch the risk move</h2>
+      <p class="lede">This box runs the same weights, thresholds, and decay math as
+        <code>backend/engine/insider/pipeline.py</code> and <code>risk.py</code>, ported straight into this
+        page's JavaScript. Nothing here talks to a server, it computes entirely in your browser.</p>
+
+      <div class="sandbox">
+        <div class="sandbox-presets">
+          <button type="button" data-preset="normal">sample: normal login</button>
+          <button type="button" data-preset="offhours">sample: off-hours + new host</button>
+          <button type="button" data-preset="staged">sample: staged exfil, plays 3 events</button>
+        </div>
+        <p class="sandbox-caption">presets play out over simulated days with real decay between events, same pacing philosophy as the ledger above</p>
+
+        <div class="sandbox-grid">
+          <div class="sandbox-controls">
+            <div class="sandbox-toggles">
+              <label class="sandbox-toggle"><input type="checkbox" id="f_off_hours"> off-hours activity</label>
+              <label class="sandbox-toggle"><input type="checkbox" id="f_new_host"> new host</label>
+              <label class="sandbox-toggle"><input type="checkbox" id="f_new_path"> new file path</label>
+              <label class="sandbox-toggle"><input type="checkbox" id="f_new_destination"> new destination</label>
+              <label class="sandbox-toggle"><input type="checkbox" id="f_failed_login"> failed login</label>
+            </div>
+            <div class="sandbox-field">
+              <label>login-hour z-score <span class="val tnum" id="v_hour_zscore">0.0σ</span></label>
+              <input type="range" id="f_hour_zscore" min="0" max="5" step="0.1" value="0">
+            </div>
+            <div class="sandbox-field">
+              <label>volume z-score <span class="val tnum" id="v_volume_zscore">0.0σ</span></label>
+              <input type="range" id="f_volume_zscore" min="0" max="5" step="0.1" value="0">
+            </div>
+            <div class="sandbox-field">
+              <label>7-day staged trend <span class="val tnum" id="v_staged_trend">0.0σ</span></label>
+              <input type="range" id="f_staged_trend" min="0" max="5" step="0.1" value="0">
+            </div>
+            <div class="sandbox-field">
+              <label>transfer drift vs. long-run <span class="val tnum" id="v_transfer_drift">+0%</span></label>
+              <input type="range" id="f_transfer_drift" min="0" max="2" step="0.05" value="0">
+            </div>
+            <div class="sandbox-field">
+              <label>login-hour drift <span class="val tnum" id="v_hour_drift">0.0σ</span></label>
+              <input type="range" id="f_hour_drift" min="0" max="3" step="0.1" value="0">
+            </div>
+            <div class="sandbox-pending" id="pending"></div>
+            <div class="sandbox-actions">
+              <button type="button" class="add" id="btnAdd">add this event</button>
+              <button type="button" class="decay" id="btnDecay">advance 1 day (decay)</button>
+              <button type="button" class="reset" id="btnReset">reset</button>
+            </div>
+          </div>
+
+          <div class="sandbox-readout">
+            <div class="sandbox-risk-row">
+              <span class="sandbox-risk-num tnum" id="riskNum">0.00</span>
+              <span class="sev-stamp low" id="riskSev">low</span>
+            </div>
+            <div class="sandbox-meter"><div id="riskBar" style="width:0%"></div></div>
+            <ul class="sandbox-log" id="sandboxLog"><li class="empty">no events yet, this employee has no signal on record.</li></ul>
+            <p class="sandbox-scope">Scope: this reproduces the deterministic flag/threshold math only. The
+              real engine also runs an unsupervised anomaly forest per employee (<code>anomaly.py</code>)
+              that needs real accumulated history to mean anything, that part isn't reproducible outside a
+              running backend.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
       <p class="eyebrow">how it works</p>
       <h2>How a person becomes a number, honestly</h2>
       <p class="lede">Every stage compares an employee to their own past, never to everyone else's. No
@@ -194,7 +298,7 @@
     <div class="wrap">
       <p class="eyebrow">how we work</p>
       <h2>Real bugs this build caught on itself</h2>
-      <p class="lede">Not process theater — four real defects a stress test surfaced during this build,
+      <p class="lede">Not process theater - four real defects a stress test surfaced during this build,
         and the actual fix, straight from <code>docs/results.md</code> and the engine source.</p>
       <div class="bugfix">
         <div class="bugfix-row">
@@ -202,15 +306,15 @@
           <div class="good"><h4>fixed</h4><p>Trigger made self-relative: a z-score against that employee's own recent anomaly-score history, not a fixed global cutoff.</p></div>
         </div>
         <div class="bugfix-row">
-          <div class="bad"><h4>found</h4><p>Variance-normalized drift z-score self-limits on a genuinely climbing series — the slow-drift insider scenario went undetected.</p></div>
+          <div class="bad"><h4>found</h4><p>Variance-normalized drift z-score self-limits on a genuinely climbing series - the slow-drift insider scenario went undetected.</p></div>
           <div class="good"><h4>fixed</h4><p>Added a non-normalized <code>drift_ratio()</code> for trending volume/transfer signals, kept <code>drift_zscore()</code> only for wandering ones like login hour.</p></div>
         </div>
         <div class="bugfix-row">
           <div class="bad"><h4>found</h4><p>A near-zero-but-positive contribution rate produced technically-correct but absurd projections like "12,756,548,269.1 days to critical."</p></div>
-          <div class="good"><h4>fixed</h4><p>365-day sanity horizon on the ETA projection — beyond that, it reports <code>null</code> instead of a nonsense number.</p></div>
+          <div class="good"><h4>fixed</h4><p>365-day sanity horizon on the ETA projection - beyond that, it reports <code>null</code> instead of a nonsense number.</p></div>
         </div>
         <div class="bugfix-row">
-          <div class="bad"><h4>found</h4><p>The collector agent persisted its read offset right after reading a file, before confirming the batch actually sent — a failed send got silently treated as delivered.</p></div>
+          <div class="bad"><h4>found</h4><p>The collector agent persisted its read offset right after reading a file, before confirming the batch actually sent - a failed send got silently treated as delivered.</p></div>
           <div class="good"><h4>fixed</h4><p>All-or-nothing flush per source; the offset only advances after a confirmed successful send.</p></div>
         </div>
       </div>
@@ -319,6 +423,208 @@
     applyTheme(next);
     try { localStorage.setItem('rakshak-theme', next); } catch (e) {}
   });
+})();
+</script>
+
+<script>
+(function () {
+  // Ported from backend/engine/insider/pipeline.py + risk.py - same weights,
+  // thresholds, and decay constants, computed here instead of on a server.
+  var FLAG_WEIGHT = {
+    hour_zscore: 0.12, hour_drift: 0.10, new_host: 0.10, failed_login: 0.08,
+    volume_zscore: 0.10, volume_drift: 0.10, new_path: 0.06, new_destination: 0.12,
+    staged_trend: 0.20, transfer_drift: 0.10, off_hours: 0.06
+  };
+  var BINARY_FLAGS = ['new_host', 'new_path', 'new_destination', 'failed_login', 'off_hours'];
+  var THRESHOLDS = {
+    hour_zscore: [2.5, 4.0], volume_zscore: [2.5, 4.0], staged_trend: [2.5, 4.0],
+    hour_drift: [1.5, 4.0], volume_drift: [0.4, 1.5], transfer_drift: [0.4, 1.5]
+  };
+  var ELEVATED_FRACTION = 0.6, ELEVATED_WEIGHT_SCALE = 0.3, ELEVATED_MIN_COUNT = 2;
+  var SEVERITY_THRESHOLDS = [['critical', 0.85], ['high', 0.65], ['medium', 0.40], ['low', 0]];
+  var REASON_TEMPLATES = {
+    hour_zscore: function (v) { return 'login at an unusual hour for this employee (' + v.toFixed(1) + ' sigma from their baseline)'; },
+    hour_drift: function (v) { return "login-time pattern has gradually drifted from this employee's long-run normal (" + v.toFixed(1) + ' sigma)'; },
+    new_host: function () { return 'login from a host not seen before for this employee'; },
+    failed_login: function () { return 'failed login attempt'; },
+    volume_zscore: function (v) { return "access/transfer volume far above this employee's own baseline (" + v.toFixed(1) + ' sigma)'; },
+    volume_drift: function (v) { return "file access volume has climbed " + Math.round(v * 100) + "% above this employee's long-run normal"; },
+    new_path: function () { return 'access to a file path not seen before for this employee'; },
+    new_destination: function () { return 'transfer to a destination not seen before for this employee'; },
+    staged_trend: function (v) { return "trailing 7-day transfer volume trending well above this employee's normal (" + v.toFixed(1) + ' sigma)'; },
+    transfer_drift: function (v) { return "transfer volume has climbed " + Math.round(v * 100) + "% above this employee's long-run normal, beyond the 7-day trend alone"; },
+    off_hours: function () { return 'activity outside normal working hours'; }
+  };
+
+  function severityFor(risk) {
+    for (var i = 0; i < SEVERITY_THRESHOLDS.length; i++) {
+      if (risk >= SEVERITY_THRESHOLDS[i][1]) return SEVERITY_THRESHOLDS[i][0];
+    }
+    return 'low';
+  }
+
+  var RANGE_IDS = ['hour_zscore', 'volume_zscore', 'staged_trend', 'transfer_drift', 'hour_drift'];
+  var TOGGLE_IDS = ['off_hours', 'new_host', 'new_path', 'new_destination', 'failed_login'];
+
+  function readInputs() {
+    var out = {};
+    TOGGLE_IDS.forEach(function (k) { out[k] = document.getElementById('f_' + k).checked ? 1 : 0; });
+    RANGE_IDS.forEach(function (k) { out[k] = parseFloat(document.getElementById('f_' + k).value); });
+    return out;
+  }
+
+  function computeContribution(inputs) {
+    var reasons = [], contribution = 0, elevated = [];
+    Object.keys(FLAG_WEIGHT).forEach(function (key) {
+      var value = inputs[key];
+      if (value === undefined) return;
+      if (BINARY_FLAGS.indexOf(key) !== -1) {
+        if (value >= 1) { reasons.push(REASON_TEMPLATES[key](value)); contribution += FLAG_WEIGHT[key]; }
+        return;
+      }
+      var trigger = THRESHOLDS[key][0], denom = THRESHOLDS[key][1];
+      if (value >= trigger) {
+        reasons.push(REASON_TEMPLATES[key](value));
+        contribution += FLAG_WEIGHT[key] * Math.min(1, value / denom);
+      } else if (value >= trigger * ELEVATED_FRACTION) {
+        elevated.push([key, value, trigger]);
+      }
+    });
+    if (elevated.length >= ELEVATED_MIN_COUNT) {
+      elevated.forEach(function (e) {
+        contribution += FLAG_WEIGHT[e[0]] * ELEVATED_WEIGHT_SCALE * Math.min(1, e[1] / e[2]);
+      });
+      var names = elevated.map(function (e) { return e[0].replace(/_/g, ' '); }).join(', ');
+      reasons.push('multiple signals simultaneously elevated without any one fully triggering (' + names + ')');
+    }
+    return { reasons: reasons, contribution: contribution };
+  }
+
+  var sandboxRisk = 0;
+  var sandboxLog = [];
+
+  function renderSandbox() {
+    document.getElementById('riskNum').textContent = sandboxRisk.toFixed(2);
+    var sev = severityFor(sandboxRisk);
+    var sevEl = document.getElementById('riskSev');
+    sevEl.textContent = sev;
+    sevEl.className = 'sev-stamp ' + sev;
+    document.getElementById('riskBar').style.width = Math.round(sandboxRisk * 100) + '%';
+    var logEl = document.getElementById('sandboxLog');
+    logEl.innerHTML = sandboxLog.length
+      ? sandboxLog.slice(0, 8).map(function (r) { return '<li>' + r + '</li>'; }).join('')
+      : '<li class="empty">no events yet, this employee has no signal on record.</li>';
+  }
+
+  function updatePending() {
+    var result = computeContribution(readInputs());
+    var el = document.getElementById('pending');
+    el.textContent = result.contribution > 0
+      ? 'if added: +' + result.contribution.toFixed(3) + ' risk (' + result.reasons.length + ' signal' + (result.reasons.length === 1 ? '' : 's') + ')'
+      : 'if added: no signal crosses a trigger, contributes nothing';
+  }
+
+  function bindRange(key, fmt) {
+    var el = document.getElementById('f_' + key);
+    var valEl = document.getElementById('v_' + key);
+    el.addEventListener('input', function () { valEl.textContent = fmt(parseFloat(el.value)); updatePending(); });
+  }
+  bindRange('hour_zscore', function (v) { return v.toFixed(1) + 'σ'; });
+  bindRange('volume_zscore', function (v) { return v.toFixed(1) + 'σ'; });
+  bindRange('staged_trend', function (v) { return v.toFixed(1) + 'σ'; });
+  bindRange('transfer_drift', function (v) { return '+' + Math.round(v * 100) + '%'; });
+  bindRange('hour_drift', function (v) { return v.toFixed(1) + 'σ'; });
+  TOGGLE_IDS.forEach(function (k) { document.getElementById('f_' + k).addEventListener('change', updatePending); });
+
+  function clearInputs() {
+    TOGGLE_IDS.forEach(function (k) { document.getElementById('f_' + k).checked = false; });
+    RANGE_IDS.forEach(function (k) {
+      var el = document.getElementById('f_' + k);
+      el.value = 0;
+      el.dispatchEvent(new Event('input'));
+    });
+  }
+
+  function applyPreset(values) {
+    Object.keys(values).forEach(function (key) {
+      var el = document.getElementById('f_' + key);
+      if (!el) return;
+      if (el.type === 'checkbox') { el.checked = !!values[key]; }
+      else { el.value = values[key]; el.dispatchEvent(new Event('input')); }
+    });
+  }
+
+  document.getElementById('btnAdd').addEventListener('click', function () {
+    var result = computeContribution(readInputs());
+    sandboxRisk = Math.min(1, sandboxRisk + result.contribution);
+    if (result.reasons.length) sandboxLog = result.reasons.concat(sandboxLog).slice(0, 8);
+    renderSandbox();
+  });
+  document.getElementById('btnDecay').addEventListener('click', function () {
+    sandboxRisk = sandboxRisk * Math.exp(-Math.LN2 / 3 * 1);
+    renderSandbox();
+  });
+  document.getElementById('btnReset').addEventListener('click', function () {
+    sandboxRisk = 0; sandboxLog = [];
+    clearInputs();
+    renderSandbox();
+  });
+
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  Array.prototype.forEach.call(document.querySelectorAll('.sandbox-presets button'), function (btn) {
+    btn.addEventListener('click', function () {
+      var preset = btn.getAttribute('data-preset');
+      if (preset === 'normal') {
+        clearInputs();
+        document.getElementById('btnAdd').click();
+      } else if (preset === 'offhours') {
+        clearInputs();
+        applyPreset({ off_hours: 1, new_host: 1 });
+        document.getElementById('btnAdd').click();
+      } else if (preset === 'staged') {
+        sandboxRisk = 0; sandboxLog = [];
+        var steps = [
+          { volume_zscore: 2.8 },
+          { volume_zscore: 2.6, staged_trend: 2.7 },
+          { volume_zscore: 2.7, staged_trend: 2.6, transfer_drift: 0.9 }
+        ];
+        var i = 0;
+        function playNext() {
+          if (i > 0) sandboxRisk = sandboxRisk * Math.exp(-Math.LN2 / 3 * 1);
+          clearInputs();
+          applyPreset(steps[i]);
+          var result = computeContribution(readInputs());
+          sandboxRisk = Math.min(1, sandboxRisk + result.contribution);
+          if (result.reasons.length) sandboxLog = result.reasons.concat(sandboxLog).slice(0, 8);
+          renderSandbox();
+          i++;
+          if (i < steps.length) setTimeout(playNext, reducedMotion ? 0 : 900);
+        }
+        playNext();
+      }
+    });
+  });
+
+  updatePending();
+  renderSandbox();
+})();
+</script>
+<script>
+(function () {
+  var targets = document.querySelectorAll('main > section, main > .cover');
+  targets.forEach ? targets.forEach(addReveal) : Array.prototype.forEach.call(targets, addReveal);
+  function addReveal(el) { el.classList.add('reveal'); }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { io.observe(el); });
+  } else {
+    Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { el.classList.add('visible'); });
+  }
 })();
 </script>
 </body>

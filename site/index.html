@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RAKSHAK — Autonomous Threat Hunter for Insider Attacks</title>
+<title>RAKSHAK - Autonomous Threat Hunter for Insider Attacks</title>
 <meta name="description" content="A central node that baselines every employee against their own history and scores deviations, not one RAKSHAK per employee, no labeled attack data required.">
 <style>
   :root {
@@ -11,15 +11,15 @@
     --paper-raised: #EAE3D1;
     --ink: #211D15;
     --ink-soft: #6B6252;
-    --ink-faint: #8C8267;
+    --ink-faint: #726852;
     --rule: #C9BFA0;
     --rule-strong: #A79A78;
     --stamp: #A23B2E;
     --stamp-ink: #F2EDE0;
     --confirmed: #2E4A3B;
     --sev-low: #6B6252;
-    --sev-medium: #A9781F;
-    --sev-high: #B85420;
+    --sev-medium: #8A5E16;
+    --sev-high: #9C4419;
     --sev-critical: #A23B2E;
     --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
     --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Courier New", monospace;
@@ -49,6 +49,9 @@
   a { color: inherit; }
   a:focus-visible, button:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
 
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
   .tnum { font-variant-numeric: tabular-nums; }
@@ -96,9 +99,9 @@
   section:last-of-type { border-bottom: none; }
   .eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stamp); margin: 0 0 0.7rem; }
   h2 { font-size: clamp(1.5rem, 3.2vw, 1.85rem); margin: 0 0 1.1rem; text-wrap: balance; font-weight: 600; }
-  .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.5rem; }
+  .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.5rem; text-align: justify; hyphens: auto; text-justify: inter-word; }
   .prose { max-width: 620px; }
-  .prose p { margin: 0 0 1rem; }
+  .prose p { margin: 0 0 1rem; text-align: justify; hyphens: auto; text-justify: inter-word; }
 
   .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
   .flow-step { padding: 1.1rem 1.15rem; border-right: 1px solid var(--rule); background: var(--paper-raised); }
@@ -117,7 +120,7 @@
   .addenda .addendum:first-child { border-top: none; }
   .addendum .mark { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); letter-spacing: 0.06em; padding-top: 0.15rem; }
   .addendum h3 { margin: 0 0 0.35rem; font-size: 1.02rem; font-weight: 600; }
-  .addendum p { margin: 0; color: var(--ink-soft); font-size: 0.94rem; }
+  .addendum p { margin: 0; color: var(--ink-soft); font-size: 0.94rem; text-align: justify; hyphens: auto; text-justify: inter-word; }
 
   .audit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
   .audit-cell { background: var(--paper-raised); padding: 1.1rem 1.15rem; }
@@ -180,7 +183,7 @@
       <h2>One node, a fleet of baselines</h2>
       <div class="prose">
         <p>Thin collector agents sit on each monitored machine and forward login, file-access, and
-          data-transfer events to one central RAKSHAK node — not one RAKSHAK installed per employee. The
+          data-transfer events to one central RAKSHAK node - not one RAKSHAK installed per employee. The
           node builds a behavioral baseline per employee from their own history, scores new events against
           it with an unsupervised anomaly engine, and surfaces alerts with a severity score and a
           plain-language reason.</p>
@@ -205,7 +208,7 @@
         <div class="addendum">
           <div class="mark">ADD. 2</div>
           <div><h3>HR signal fusion</h3>
-            <p>A resignation or PIP flag raises scrutiny, but only ever amplifies a real anomaly — proven
+            <p>A resignation or PIP flag raises scrutiny, but only ever amplifies a real anomaly - proven
               with a dedicated control employee carrying the HR signal and nothing else.</p></div>
         </div>
         <div class="addendum">
@@ -291,6 +294,23 @@
     applyTheme(next);
     try { localStorage.setItem('rakshak-theme', next); } catch (e) {}
   });
+})();
+</script>
+<script>
+(function () {
+  var targets = document.querySelectorAll('main > section, main > .cover');
+  targets.forEach ? targets.forEach(addReveal) : Array.prototype.forEach.call(targets, addReveal);
+  function addReveal(el) { el.classList.add('reveal'); }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { io.observe(el); });
+  } else {
+    Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { el.classList.add('visible'); });
+  }
 })();
 </script>
 </body>
