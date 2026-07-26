@@ -13,7 +13,12 @@ schema = schemathesis.openapi.from_asgi("/openapi.json", app)
 
 
 @schema.parametrize()
-@settings(max_examples=25, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+@settings(
+    max_examples=25,
+    deadline=None,
+    # filter_too_much: the feedback endpoint's narrow schema filters out most fuzz inputs.
+    suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
+)
 def test_api_fuzz(case):
     # dev-key: verify_api_key isn't modeled as an OpenAPI security scheme (it's a
     # plain Header dependency), so schemathesis wouldn't otherwise know to send it -
