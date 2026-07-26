@@ -27,7 +27,7 @@ measured numbers):
 ## Requirements
 
 - Python >= 3.11
-- [bubblewrap](https://github.com/containers/bubblewrap) (`bwrap`) on `PATH` for the sandbox analysis step to run isolated - falls back to a degraded rlimit-only mode if missing, with a logged warning.
+- [bubblewrap](https://github.com/containers/bubblewrap) (`bwrap`) on `PATH` for the sandbox analysis step to run isolated - falls back to a degraded rlimit-only mode if missing, with a logged warning. Only used by the malware/log side; skip it entirely if you're only here for insider-threat hunting (see below).
 
 ## Setup
 
@@ -124,6 +124,14 @@ One central RAKSHAK node, thin collector agents on each monitored machine forwar
 login/file-access/data-transfer events - not one RAKSHAK per employee. Per-employee
 behavioral baselines, unsupervised anomaly scoring, severity with a plain-language reason.
 Full design in `hackathon/technical-approach.md`.
+
+**Only here for this?** Everything below needs nothing but the base install - no
+`bubblewrap`, no `[quantum]` extra, no Docker. Those are for the separate malware/log
+capability above; the insider engine has zero dependency on any of it.
+
+```bash
+pip install -e .
+```
 
 ```bash
 # generate simulated per-employee logs (a minority carry an injected insider pattern)
