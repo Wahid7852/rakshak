@@ -210,7 +210,10 @@ scripts/agent/    collector agent (runs on a monitored machine, not the central 
 samples/insider/  simulated employee log generator for the insider-threat demo
 backend/api/gRPC/protos/  gRPC service definitions
 client-qt/        Qt desktop client (talks to the FastAPI backend over REST)
-site/             static landing/demo/docs site, deployable to Vercel/Render (see site/README.md)
+site/             landing/demo/docs site, deployable to Vercel/Render (see site/README.md)
+api/score.py      Vercel serverless function backing the site's "run it live" demo -
+                  imports backend/engine/insider directly, no code duplicated into site/
+vercel.json       wires api/ (function) + site/ (static output) together for Vercel
 ```
 
 See [Getting Started](docs/getting-started.md), [API](docs/API.md), and

@@ -1,0 +1,4 @@
+# api/score.py (Vercel serverless function) has zero third-party dependencies -
+# it imports backend.engine.insider directly, which is pure stdlib. This file
+# exists so Vercel's Python build step has one to find, not because anything
+# needs installing.

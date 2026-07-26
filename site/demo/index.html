@@ -159,6 +159,20 @@
   .bugfix p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); text-align: justify; hyphens: auto; text-justify: inter-word; }
   @media (max-width: 640px) { .bugfix-row { grid-template-columns: 1fr; gap: 0.6rem; } }
 
+  .live-panel { background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 3px; padding: 1.2rem 1.3rem; }
+  .live-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+  .live-actions button { font-family: var(--mono); font-size: 0.82rem; padding: 0.6rem 1rem; border-radius: 2px; border: 1px solid var(--ink); cursor: pointer; }
+  .live-actions .primary { background: var(--stamp); border-color: var(--stamp); color: var(--stamp-ink); }
+  .live-actions .ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); }
+  .live-actions button:disabled { opacity: 0.5; cursor: default; }
+  .live-status { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-faint); margin-top: 0.7rem; min-height: 1.2em; }
+  .live-status.err { color: var(--sev-critical); }
+  .live-json { display: none; margin-top: 0.9rem; }
+  .live-json.open { display: block; }
+  .live-json textarea { width: 100%; min-height: 160px; font-family: var(--mono); font-size: 0.76rem; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 3px; padding: 0.7rem; resize: vertical; }
+  .live-toggle { background: none; border: none; font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); text-decoration: underline; cursor: pointer; padding: 0; margin-top: 0.6rem; }
+  .live-results { margin-top: 1.2rem; }
+
   .page-nav { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.82rem; padding: 1.5rem 0; }
   .page-nav a { text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
   .page-nav a:hover { border-color: var(--stamp); color: var(--stamp); }
@@ -246,6 +260,48 @@
         </table>
         </div>
         <div class="demo-foot" id="ledgerFoot"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">run it live</p>
+      <h2>Not a replay this time, an actual live call</h2>
+      <p class="lede">This one really does hit a server. Generate a synthetic batch of employee activity (or
+        paste your own in the same shape), and a serverless function runs it through the real
+        <code>backend/engine/insider</code> code, not a client-side approximation, not the captured data
+        above. You get back whatever that run actually produces.</p>
+
+      <div class="live-panel">
+        <div class="live-actions">
+          <button type="button" class="ghost" id="liveGenerate">generate a sample batch</button>
+          <button type="button" class="primary" id="liveScore" disabled>score it live →</button>
+        </div>
+        <button type="button" class="live-toggle" id="liveToggleJson">show/edit the raw events</button>
+        <div class="live-json" id="liveJsonWrap">
+          <textarea id="liveJson" spellcheck="false" placeholder="click &quot;generate a sample batch&quot;, or paste your own events array here"></textarea>
+        </div>
+        <p class="live-status" id="liveStatus"></p>
+
+        <div class="live-results" id="liveResults" style="display:none">
+          <div class="table-scroll">
+          <table class="ledger-table">
+            <thead><tr><th>employee</th><th>severity</th><th>risk</th><th></th><th>type</th></tr></thead>
+            <tbody id="liveBody"></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="honesty-strip" style="margin-top:1.2rem">
+        <span class="mk">why scoped this way</span>
+        <p>The real deployment keeps per-employee baselines <em>across</em> many requests over days - that
+          needs a persistent process or an external database, which a static-site serverless function
+          doesn't give you for free. Rearchitecting the store layer to survive between calls is a real
+          project, not a deploy setting, so this endpoint scores one full batch per request instead: fresh
+          state in, real engine, real answer out, nothing carried over to the next visitor. That's not the
+          full system, but every number it returns is genuinely computed, not looked up from a cache.</p>
       </div>
     </div>
   </section>
@@ -684,6 +740,173 @@
   if (demoVideo && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     demoVideo.removeAttribute('autoplay');
     demoVideo.pause();
+  }
+})();
+</script>
+
+<script>
+(function () {
+  // Client-side synthetic batch generator, deliberately simple (not a port
+  // of samples/insider/generate_employee_logs.py): a handful of routine
+  // employees plus one staged-transfer pattern that ramps up in the final
+  // stretch, tuned so the real engine's 20-observation warmup and staged_trend
+  // z-score threshold both actually clear before scoring - verified locally
+  // against the real pipeline before shipping, not just eyeballed.
+  function generateSampleBatch() {
+    var NAMES = ['EMP101', 'EMP102', 'EMP103', 'EMP104', 'EMP105', 'EMP106'];
+    var INSIDER = 'EMP106';
+    var DAYS = 38;
+    var now = new Date();
+    var start = new Date(now.getTime() - DAYS * 86400000);
+    var events = [];
+    var hosts = {};
+    NAMES.forEach(function (id) { hosts[id] = 'ws-' + Math.floor(Math.random() * 20); });
+
+    var FILES = [
+      ['/shares/public/handbook.pdf', 'public'],
+      ['/shares/engineering/design_doc.md', 'internal'],
+      ['/shares/engineering/roadmap.pptx', 'internal'],
+      ['/shares/finance/quarterly_report.xlsx', 'confidential']
+    ];
+    var DESTS_NORMAL = ['internal-fileshare', 'corp-cloud-drive', 'backup-nas'];
+    var DEST_EXFIL = 'personal-gdrive';
+
+    for (var day = 0; day <= DAYS; day++) {
+      var date = new Date(start.getTime() + day * 86400000);
+      var dow = date.getUTCDay();
+      if (dow === 0 || dow === 6) continue;
+
+      NAMES.forEach(function (id) {
+        var hour = 9 + Math.random() * 1.5;
+        var loginTs = new Date(date.getTime());
+        loginTs.setUTCHours(Math.floor(hour), Math.floor((hour % 1) * 60), 0, 0);
+        events.push({ employee_id: id, event_type: 'login', timestamp: loginTs.toISOString(), host_id: hosts[id], success: true });
+
+        var nFiles = 1 + Math.floor(Math.random() * 2);
+        for (var i = 0; i < nFiles; i++) {
+          var f = FILES[Math.floor(Math.random() * FILES.length)];
+          var ts = new Date(loginTs.getTime() + (i + 1) * 20 * 60000);
+          events.push({ employee_id: id, event_type: 'file_access', timestamp: ts.toISOString(), path: f[0], sensitivity: f[1], bytes: 2000 + Math.floor(Math.random() * 3000) });
+        }
+
+        if (id !== INSIDER && Math.random() < 0.35) {
+          var tts = new Date(loginTs.getTime() + 90 * 60000);
+          events.push({ employee_id: id, event_type: 'data_transfer', timestamp: tts.toISOString(), destination: DESTS_NORMAL[Math.floor(Math.random() * DESTS_NORMAL.length)], bytes: 50000 + Math.floor(Math.random() * 30000) });
+        }
+      });
+
+      var daysFromEnd = DAYS - day;
+      var its = new Date(date.getTime());
+      its.setUTCHours(13, 0, 0, 0);
+      var rampStart = DAYS - 16;
+      var staged = Math.round(150000 * Math.pow(1.18, Math.max(0, day - rampStart)));
+      var dest = daysFromEnd <= 3 ? DEST_EXFIL : DESTS_NORMAL[Math.floor(Math.random() * DESTS_NORMAL.length)];
+      events.push({ employee_id: INSIDER, event_type: 'data_transfer', timestamp: its.toISOString(), destination: dest, bytes: staged });
+    }
+    return events;
+  }
+
+  function fmtBytes(n) {
+    var units = ['B', 'KB', 'MB', 'GB'];
+    var i = 0;
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    return (i === 0 ? n.toFixed(0) : n.toFixed(1)) + units[i];
+  }
+
+  var genBtn = document.getElementById('liveGenerate');
+  var scoreBtn = document.getElementById('liveScore');
+  var toggleBtn = document.getElementById('liveToggleJson');
+  var jsonWrap = document.getElementById('liveJsonWrap');
+  var jsonBox = document.getElementById('liveJson');
+  var status = document.getElementById('liveStatus');
+  var resultsWrap = document.getElementById('liveResults');
+  var resultsBody = document.getElementById('liveBody');
+
+  genBtn.addEventListener('click', function () {
+    var batch = generateSampleBatch();
+    jsonBox.value = JSON.stringify(batch, null, 2);
+    scoreBtn.disabled = false;
+    status.textContent = batch.length + ' synthetic events generated, 6 employees, 1 carrying a staged-transfer pattern.';
+    status.className = 'live-status';
+  });
+
+  toggleBtn.addEventListener('click', function () {
+    jsonWrap.classList.toggle('open');
+  });
+
+  jsonBox.addEventListener('input', function () {
+    scoreBtn.disabled = jsonBox.value.trim().length === 0;
+  });
+
+  scoreBtn.addEventListener('click', function () {
+    var events;
+    try {
+      events = JSON.parse(jsonBox.value);
+    } catch (e) {
+      status.textContent = 'that\'s not valid JSON: ' + e.message;
+      status.className = 'live-status err';
+      return;
+    }
+    scoreBtn.disabled = true;
+    status.textContent = 'calling /api/score …';
+    status.className = 'live-status';
+    resultsWrap.style.display = 'none';
+
+    fetch('/api/score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events: events })
+    })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        scoreBtn.disabled = false;
+        if (!result.ok) {
+          status.textContent = 'server said: ' + (result.data.error || 'unknown error');
+          status.className = 'live-status err';
+          return;
+        }
+        var d = result.data;
+        status.textContent = d.accepted + ' events scored, ' + d.rejected + ' rejected, ' + d.employees.length + ' employees seen. Real response from a real function.';
+        status.className = 'live-status';
+        renderLiveResults(d.employees);
+      })
+      .catch(function (err) {
+        scoreBtn.disabled = false;
+        status.textContent = 'request failed: ' + err.message + ' (the function may be cold-starting, try again)';
+        status.className = 'live-status err';
+      });
+  });
+
+  function renderLiveResults(employees) {
+    var order = { critical: 0, high: 1, medium: 2, low: 3 };
+    var sorted = employees.slice().sort(function (a, b) { return order[a.sev] - order[b.sev] || b.risk - a.risk; });
+    resultsBody.innerHTML = '';
+    var openId = null;
+    sorted.forEach(function (u) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="id-cell">' + u.id + '</td>' +
+        '<td><span class="sev-stamp ' + u.sev + '">' + u.sev + '</span></td>' +
+        '<td class="risk-cell tnum">' + u.risk.toFixed(2) + '</td>' +
+        '<td class="meter-cell"><span class="meter"><div style="width:' + Math.round(u.risk * 100) + '%"></div></span></td>' +
+        '<td>' + u.subtype + '</td>';
+      tr.addEventListener('click', function () {
+        var nr = document.getElementById('live-nar-' + u.id);
+        nr.classList.toggle('open');
+      });
+      resultsBody.appendChild(tr);
+
+      var nr = document.createElement('tr');
+      nr.className = 'narrative-row';
+      nr.id = 'live-nar-' + u.id;
+      var etaLine = u.eta ? ('projected to critical in ~' + u.eta.toFixed(1) + ' day(s) at current rate') : 'no upward trend to project';
+      nr.innerHTML = '<td colspan="5">' + u.narrative +
+        '<div class="stat-line">blast radius (14d): ' + fmtBytes(u.blast) + ' &middot; ' + etaLine + '</div></td>';
+      resultsBody.appendChild(nr);
+    });
+    resultsWrap.style.display = sorted.length ? 'block' : 'none';
   }
 })();
 </script>

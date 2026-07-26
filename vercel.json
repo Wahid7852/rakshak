@@ -1,0 +1,9 @@
+{
+  "outputDirectory": "site",
+  "functions": {
+    "api/score.py": {
+      "maxDuration": 15,
+      "includeFiles": "backend/**"
+    }
+  }
+}
