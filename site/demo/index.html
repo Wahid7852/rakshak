@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Live demo - RAKSHAK</title>
 <meta name="description" content="A real captured run of RAKSHAK's insider-threat engine: 14 employees, 4 injected insiders, all caught. Replayed client-side, not a hosted backend.">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Live demo - RAKSHAK">
+<meta property="og:description" content="A real captured run of RAKSHAK's insider-threat engine: 14 employees, 4 injected insiders, all caught. Replayed client-side, not a hosted backend.">
+<meta property="og:url" content="https://rakshak-psi.vercel.app/demo/">
+<meta property="og:image" content="https://rakshak-psi.vercel.app/assets/og-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Live demo - RAKSHAK">
+<meta name="twitter:description" content="A real captured run of RAKSHAK's insider-threat engine: 14 employees, 4 injected insiders, all caught. Replayed client-side, not a hosted backend.">
+<meta name="twitter:image" content="https://rakshak-psi.vercel.app/assets/og-card.png">
 <style>
   :root {
     --paper: #F2EDE0; --paper-raised: #EAE3D1; --ink: #211D15; --ink-soft: #6B6252; --ink-faint: #726852;
@@ -90,6 +100,10 @@
   .narrative-row td { background: var(--paper); font-family: var(--serif); font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55; padding: 0.9rem 1.1rem 1.2rem; }
   .narrative-row .stat-line { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-faint); margin-top: 0.5rem; letter-spacing: 0.02em; }
   .demo-foot { padding: 0.8rem 1.1rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); }
+
+  .shot-figure { margin: 0; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; background: var(--paper-raised); }
+  .shot-figure img { display: block; width: 100%; height: auto; }
+  .shot-figure figcaption { padding: 0.7rem 1.1rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); }
 
   .sandbox { background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 3px; padding: 1.2rem 1.3rem; }
   .sandbox-presets { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
@@ -179,6 +193,20 @@
           backend - there's nothing running behind this page to talk to. The actual backend, and the
           commands to run it yourself, are in the repo and on the <a href="../docs/" style="color:inherit">docs page</a>.</p>
       </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">the actual product</p>
+      <h2>Not a mockup, this is what the backend serves</h2>
+      <p class="lede">A screenshot of the real <code>/insider/dashboard</code> page, same server, same run as
+        the ledger below, filtered to critical severity. Confirm/dismiss on each row is the live analyst
+        feedback loop, not decoration.</p>
+      <figure class="shot-figure">
+        <img src="../assets/dashboard-screenshot.png" alt="RAKSHAK's real insider-threat dashboard, showing critical-severity alerts and an employees-by-risk panel with plain-language narratives" loading="lazy" width="1440" height="735">
+        <figcaption>backend/api/static/insider_dashboard.html, served locally, captured from a real ingest run</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -298,7 +326,7 @@
     <div class="wrap">
       <p class="eyebrow">how we work</p>
       <h2>Real bugs this build caught on itself</h2>
-      <p class="lede">Not process theater - four real defects a stress test surfaced during this build,
+      <p class="lede">Not process theater - five real defects a stress test surfaced during this build,
         and the actual fix, straight from <code>docs/results.md</code> and the engine source.</p>
       <div class="bugfix">
         <div class="bugfix-row">
@@ -317,6 +345,19 @@
           <div class="bad"><h4>found</h4><p>The collector agent persisted its read offset right after reading a file, before confirming the batch actually sent - a failed send got silently treated as delivered.</p></div>
           <div class="good"><h4>fixed</h4><p>All-or-nothing flush per source; the offset only advances after a confirmed successful send.</p></div>
         </div>
+        <div class="bugfix-row">
+          <div class="bad"><h4>found</h4><p>The central node imported a POSIX-only module at startup through the file-sandbox path, so the whole backend, insider engine included, failed to boot on Windows at all.</p></div>
+          <div class="good"><h4>fixed</h4><p>Guarded the import; the file-sandbox feature degrades cleanly on non-POSIX instead of taking the whole process down with it.</p></div>
+        </div>
+      </div>
+
+      <div class="honesty-strip" style="margin-top:1.5rem">
+        <span class="mk">topology</span>
+        <p>Where each half is meant to run, deliberately: the <strong>central node</strong> targets Linux in
+          production, that's where the file-sandbox's namespace isolation actually works, and it now starts
+          cleanly on Windows too, just without that one enrichment signal. The <strong>collector agent</strong>
+          is pure standard library on purpose, zero OS-specific calls, so it runs unmodified on whatever mix
+          of Windows and Linux machines you're actually monitoring. One picky server, agents that don't care.</p>
       </div>
     </div>
   </section>
