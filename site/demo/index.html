@@ -47,9 +47,15 @@
   @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
   .tnum { font-variant-numeric: tabular-nums; }
+  code { font-family: var(--mono); font-size: 0.92em; overflow-wrap: anywhere; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  @media (max-width: 640px) {
+    .masthead .wrap { flex-direction: column; align-items: flex-start; gap: 0.7rem; padding-top: 0.8rem; padding-bottom: 0.8rem; }
+    .site-nav { flex-wrap: wrap; row-gap: 0.6rem; }
+  }
 
   .masthead { border-bottom: 1px solid var(--rule); position: relative; z-index: 2; background: var(--paper); }
-  .masthead .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 0.95rem 0; flex-wrap: wrap; }
+  .masthead .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 0.95rem clamp(1.25rem, 4vw, 2.5rem); flex-wrap: wrap; }
   .brand { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); text-decoration: none; }
   .brand b { color: var(--ink); font-weight: 700; }
   .site-nav { display: flex; align-items: center; gap: 1.4rem; }
@@ -233,10 +239,12 @@
             <button class="chip" data-f="low">low</button>
           </div>
         </div>
+        <div class="table-scroll">
         <table class="ledger-table">
           <thead><tr><th>employee</th><th>severity</th><th>risk</th><th></th><th>last signal</th></tr></thead>
           <tbody id="ledgerBody"></tbody>
         </table>
+        </div>
         <div class="demo-foot" id="ledgerFoot"></div>
       </div>
     </div>

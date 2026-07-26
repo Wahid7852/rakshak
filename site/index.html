@@ -65,10 +65,15 @@
 
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
   .tnum { font-variant-numeric: tabular-nums; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  @media (max-width: 640px) {
+    .masthead .wrap { flex-direction: column; align-items: flex-start; gap: 0.7rem; padding-top: 0.8rem; padding-bottom: 0.8rem; }
+    .site-nav { flex-wrap: wrap; row-gap: 0.6rem; }
+  }
 
   /* ---------- Masthead (shared across all 3 pages) ---------- */
   .masthead { border-bottom: 1px solid var(--rule); position: relative; z-index: 2; background: var(--paper); }
-  .masthead .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 0.95rem 0; flex-wrap: wrap; }
+  .masthead .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 0.95rem clamp(1.25rem, 4vw, 2.5rem); flex-wrap: wrap; }
   .brand { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); text-decoration: none; }
   .brand b { color: var(--ink); font-weight: 700; }
   .site-nav { display: flex; align-items: center; gap: 1.4rem; }
@@ -132,6 +137,10 @@
   .addendum h3 { margin: 0 0 0.35rem; font-size: 1.02rem; font-weight: 600; }
   .addendum p { margin: 0; color: var(--ink-soft); font-size: 0.94rem; text-align: justify; hyphens: auto; text-justify: inter-word; }
 
+  .shot-figure { margin: 0; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; background: var(--paper-raised); }
+  .shot-figure img, .shot-figure video { display: block; width: 100%; height: auto; }
+  .shot-figure figcaption { padding: 0.7rem 1.1rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); }
+
   .audit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
   .audit-cell { background: var(--paper-raised); padding: 1.1rem 1.15rem; }
   .audit-cell .num { font-family: var(--mono); font-size: 1.6rem; font-weight: 700; }
@@ -154,7 +163,7 @@
   .footer-links a:hover { border-color: var(--stamp); color: var(--stamp); }
   .footer-note { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); margin-top: 1rem; }
   .team { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.6rem; }
-  code { font-family: var(--mono); font-size: 0.92em; }
+  code { font-family: var(--mono); font-size: 0.92em; overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
@@ -184,6 +193,25 @@
         <a class="btn primary" href="demo/">open the live demo</a>
         <a class="btn ghost" href="docs/">read the docs</a>
       </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">see it running</p>
+      <h2>The real backend, not a mockup</h2>
+      <p class="lede">A recorded session against the actual <code>/insider/dashboard</code>, live local
+        server, real ingest: widen the severity filter, scroll the risk panel, narrow to critical, confirm
+        an alert through the live analyst feedback loop. Screen capture, not scripted output.</p>
+      <figure class="shot-figure">
+        <video src="assets/dashboard-demo.mp4" poster="assets/dashboard-screenshot.png" width="1280" height="720" autoplay muted loop playsinline controls preload="metadata">
+          <source src="assets/dashboard-demo.webm" type="video/webm">
+          <source src="assets/dashboard-demo.mp4" type="video/mp4">
+          <img src="assets/dashboard-screenshot.png" alt="RAKSHAK's real insider-threat dashboard, showing critical-severity alerts and an employees-by-risk panel with plain-language narratives">
+        </video>
+        <figcaption>backend/api/static/insider_dashboard.html, screen-recorded locally against a real ingest run, 13s, no audio</figcaption>
+      </figure>
+      <p class="teaser-more"><a href="demo/">try the interactive version yourself →</a></p>
     </div>
   </section>
 
@@ -330,6 +358,7 @@
       <p class="lede">14 simulated employees, 4 carrying an injected insider pattern the detector was never
         told about. All 4 caught. The full 14-row breakdown, with per-employee narratives, lives on the
         live demo page.</p>
+      <div class="table-scroll">
       <table class="teaser-table">
         <thead><tr><th>employee</th><th>severity</th><th>risk</th><th>subtype</th></tr></thead>
         <tbody>
@@ -338,6 +367,7 @@
           <tr><td>EMP014</td><td><span class="sev-stamp high">high</span></td><td class="tnum">0.77</td><td>data transfer, slow drift</td></tr>
         </tbody>
       </table>
+      </div>
       <p class="teaser-more"><a href="demo/">see the full 14-row run →</a></p>
 
       <div class="audit-grid" style="margin-top:2rem">
@@ -401,6 +431,12 @@
     Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { io.observe(el); });
   } else {
     Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) { el.classList.add('visible'); });
+  }
+
+  var demoVideo = document.querySelector('.shot-figure video');
+  if (demoVideo && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    demoVideo.removeAttribute('autoplay');
+    demoVideo.pause();
   }
 })();
 </script>

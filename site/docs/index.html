@@ -44,9 +44,14 @@
   @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
   .tnum { font-variant-numeric: tabular-nums; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  @media (max-width: 640px) {
+    .masthead .wrap { flex-direction: column; align-items: flex-start; gap: 0.7rem; padding-top: 0.8rem; padding-bottom: 0.8rem; }
+    .site-nav { flex-wrap: wrap; row-gap: 0.6rem; }
+  }
 
   .masthead { border-bottom: 1px solid var(--rule); position: relative; z-index: 2; background: var(--paper); }
-  .masthead .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 0.95rem 0; flex-wrap: wrap; }
+  .masthead .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 0.95rem clamp(1.25rem, 4vw, 2.5rem); flex-wrap: wrap; }
   .brand { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); text-decoration: none; }
   .brand b { color: var(--ink); font-weight: 700; }
   .site-nav { display: flex; align-items: center; gap: 1.4rem; }
@@ -69,7 +74,7 @@
   .eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stamp); margin: 0 0 0.7rem; }
   h2 { font-size: clamp(1.4rem, 3vw, 1.7rem); margin: 0 0 1rem; text-wrap: balance; font-weight: 600; }
   .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.4rem; text-align: justify; hyphens: auto; text-justify: inter-word; }
-  code { font-family: var(--mono); font-size: 0.92em; background: var(--paper-raised); padding: 0.1em 0.35em; border-radius: 2px; }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--paper-raised); padding: 0.1em 0.35em; border-radius: 2px; overflow-wrap: anywhere; }
   pre { font-family: var(--mono); font-size: 0.84rem; background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 3px; padding: 1rem 1.1rem; overflow-x: auto; line-height: 1.55; }
   pre code { background: none; padding: 0; }
   .pre-wrap { position: relative; }
@@ -81,12 +86,13 @@
   .arch { display: flex; flex-direction: column; }
   .arch-lane-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 0.5rem; }
   .arch-stage { border: 1px solid var(--rule); border-radius: 3px; background: var(--paper-raised); padding: 0.85rem 1.1rem; }
-  .arch-stage .t { font-family: var(--mono); font-size: 0.86rem; font-weight: 700; }
+  .arch-stage .t { font-family: var(--mono); font-size: 0.86rem; font-weight: 700; overflow-wrap: anywhere; }
   .arch-stage .d { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.25rem; }
-  .arch-stage .p { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); margin-top: 0.35rem; }
+  .arch-stage .p { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); margin-top: 0.35rem; overflow-wrap: anywhere; }
   .arch-arrow { text-align: center; font-family: var(--mono); color: var(--ink-faint); padding: 0.3rem 0; font-size: 0.9rem; }
   .arch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; }
   @media (max-width: 700px) { .arch-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .arch-grid { grid-template-columns: 1fr; } }
   .arch-group { border: 1px dashed var(--rule-strong); border-radius: 4px; padding: 1rem; }
 
   .req-list { list-style: none; margin: 0; padding: 0; }
@@ -265,6 +271,7 @@ open http://127.0.0.1:8080/insider/dashboard</code></pre>
       <p class="lede">All under the <code>/v1</code> prefix and behind <code>x-api-key</code> except the
         dashboard page itself. This table doesn't exist anywhere else in the repo yet - <code>docs/API.md</code>
         only documents the malware-scan routes today.</p>
+      <div class="table-scroll">
       <table class="api-table">
         <thead><tr><th>method</th><th>path</th><th>purpose</th><th>auth</th></tr></thead>
         <tbody>
@@ -275,6 +282,7 @@ open http://127.0.0.1:8080/insider/dashboard</code></pre>
           <tr><td class="m">GET</td><td class="path">/insider/dashboard</td><td>The web dashboard (no /v1 prefix, no auth on the page itself)</td><td class="auth">none</td></tr>
         </tbody>
       </table>
+      </div>
     </div>
   </section>
 
