@@ -12,9 +12,14 @@
 # default (RAKSHAK_SANDBOX_ADAPTER=dynamic to opt in) - see docs/SECURITY.md.
 from __future__ import annotations
 
-import asyncio, logging, os, re, resource, shutil, signal, sys, tempfile
+import asyncio, logging, os, re, shutil, signal, sys, tempfile
 from pathlib import Path
 from typing import Any, Dict
+
+try:
+    import resource  # POSIX-only; guarded for the same reason as runner.py
+except ImportError:
+    resource = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +105,9 @@ async def run_dynamic(payload: bytes, timeout_s: float = 5.0) -> Dict[str, Any]:
     no PE execution support. Best-effort: returns a dict, never raises."""
     if not payload.startswith(_ELF_MAGIC):
         return {"bytes": len(payload), "executed": False, "error": "not an ELF binary, dynamic analysis skipped"}
+
+    if resource is None:
+        return {"bytes": len(payload), "executed": False, "error": "dynamic analysis unavailable (POSIX-only)"}
 
     if not _bwrap_available():
         return {"bytes": len(payload), "executed": False, "error": "bwrap or strace not available"}

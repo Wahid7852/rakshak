@@ -1,9 +1,14 @@
 # Runs the read-only analysis worker under bwrap isolation.
 from __future__ import annotations
 
-import asyncio, json, logging, os, resource, shutil, signal, subprocess, sys, tempfile
+import asyncio, json, logging, os, shutil, signal, subprocess, sys, tempfile
 from pathlib import Path
 from typing import Any, Dict
+
+try:
+    import resource  # POSIX-only; guarded so importing this module doesn't crash the whole app on Windows
+except ImportError:
+    resource = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +16,7 @@ _WORKER = Path(__file__).with_name("worker.py")
 
 _MEM_LIMIT_BYTES = 256 * 1024 * 1024
 _CPU_LIMIT_SECONDS = 5
+_IS_POSIX = resource is not None  # bwrap and the rlimit fallback both need POSIX subprocess semantics
 
 _bwrap_functional: bool | None = None  # cached after the first real probe
 
@@ -98,6 +104,10 @@ async def run_sandboxed(payload: bytes, timeout_s: float = 5.0) -> Dict[str, Any
     beyond the worker script and a private scratch dir); falls back to a
     plain rlimit-constrained subprocess if bwrap isn't installed.
     """
+    if not _IS_POSIX:
+        logger.warning("sandbox unavailable: bwrap and the rlimit fallback both need POSIX, not supported on this platform")
+        return {"bytes": len(payload), "error": "sandbox unavailable (POSIX-only)", "timed_out": False}
+
     scratch = Path(tempfile.mkdtemp(prefix="rk_sbx_"))
     sample_path = scratch / "sample.bin"
     sample_path.write_bytes(payload)
