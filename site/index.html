@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAKSHAK — Autonomous Threat Hunter for Insider Attacks</title>
+<meta name="description" content="A central node that baselines every employee against their own history and scores deviations, not one RAKSHAK per employee, no labeled attack data required.">
+<style>
+  :root {
+    --paper: #F2EDE0;
+    --paper-raised: #EAE3D1;
+    --ink: #211D15;
+    --ink-soft: #6B6252;
+    --ink-faint: #8C8267;
+    --rule: #C9BFA0;
+    --rule-strong: #A79A78;
+    --stamp: #A23B2E;
+    --stamp-ink: #F2EDE0;
+    --confirmed: #2E4A3B;
+    --sev-low: #6B6252;
+    --sev-medium: #A9781F;
+    --sev-high: #B85420;
+    --sev-critical: #A23B2E;
+    --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1B1712; --paper-raised: #221D16; --ink: #ECE4D0; --ink-soft: #A79A80;
+      --ink-faint: #7D7460; --rule: #4A4030; --rule-strong: #5C5138; --stamp: #D9614F;
+      --stamp-ink: #1B1712; --confirmed: #6FA085; --sev-low: #8C8267; --sev-medium: #D0A23C;
+      --sev-high: #E17A3E; --sev-critical: #D9614F;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1B1712; --paper-raised: #221D16; --ink: #ECE4D0; --ink-soft: #A79A80;
+    --ink-faint: #7D7460; --rule: #4A4030; --rule-strong: #5C5138; --stamp: #D9614F;
+    --stamp-ink: #1B1712; --confirmed: #6FA085; --sev-low: #8C8267; --sev-medium: #D0A23C;
+    --sev-high: #E17A3E; --sev-critical: #D9614F;
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink); font-family: var(--serif);
+    font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--stamp); color: var(--stamp-ink); }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Masthead (shared across all 3 pages) ---------- */
+  .masthead { border-bottom: 1px solid var(--rule); position: relative; z-index: 2; background: var(--paper); }
+  .masthead .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 0.95rem 0; flex-wrap: wrap; }
+  .brand { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); text-decoration: none; }
+  .brand b { color: var(--ink); font-weight: 700; }
+  .site-nav { display: flex; align-items: center; gap: 1.4rem; }
+  .site-nav a {
+    font-family: var(--mono); font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase;
+    text-decoration: none; color: var(--ink-soft); padding-bottom: 3px; border-bottom: 1px solid transparent;
+  }
+  .site-nav a:hover { color: var(--ink); }
+  .site-nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--stamp); }
+  .site-nav .ext { color: var(--ink-faint); }
+  .theme-toggle {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+    background: transparent; border: 1px solid var(--rule-strong); color: var(--ink-soft);
+    padding: 0.3rem 0.6rem; border-radius: 2px; cursor: pointer;
+  }
+  .theme-toggle:hover { border-color: var(--stamp); color: var(--stamp); }
+
+  /* ---------- Ruled-paper texture (hero + footer only) ---------- */
+  .ruled {
+    background-image: repeating-linear-gradient(
+      to bottom, transparent, transparent 27px, color-mix(in srgb, var(--rule) 55%, transparent) 28px
+    );
+    background-position: 0 6px;
+  }
+
+  /* ---------- Hero ---------- */
+  .cover { padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(2.5rem, 6vw, 4rem); border-bottom: 1px solid var(--rule); }
+  .case-no { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 1.1rem; }
+  h1.title { font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.05; margin: 0 0 1.1rem; letter-spacing: -0.01em; text-wrap: balance; font-weight: 600; }
+  .dek { font-size: clamp(1.05rem, 2.4vw, 1.2rem); color: var(--ink-soft); max-width: 620px; margin: 0 0 2rem; text-wrap: pretty; }
+  .cover-actions { display: flex; gap: 0.9rem; flex-wrap: wrap; align-items: center; }
+  .btn { display: inline-block; font-family: var(--mono); font-size: 0.82rem; letter-spacing: 0.04em; text-decoration: none; padding: 0.65rem 1.15rem; border-radius: 2px; border: 1px solid var(--ink); }
+  .btn.primary { background: var(--stamp); border-color: var(--stamp); color: var(--stamp-ink); }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); }
+  .btn.ghost:hover { border-color: var(--ink); }
+
+  section { padding: clamp(2.5rem, 6vw, 4rem) 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  .eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stamp); margin: 0 0 0.7rem; }
+  h2 { font-size: clamp(1.5rem, 3.2vw, 1.85rem); margin: 0 0 1.1rem; text-wrap: balance; font-weight: 600; }
+  .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.5rem; }
+  .prose { max-width: 620px; }
+  .prose p { margin: 0 0 1rem; }
+
+  .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .flow-step { padding: 1.1rem 1.15rem; border-right: 1px solid var(--rule); background: var(--paper-raised); }
+  .flow-step:last-child { border-right: none; }
+  .flow-step .n { font-family: var(--mono); font-size: 0.7rem; color: var(--stamp); letter-spacing: 0.08em; }
+  .flow-step h3 { font-size: 0.98rem; margin: 0.35rem 0 0.4rem; font-weight: 600; }
+  .flow-step p { margin: 0; font-size: 0.85rem; color: var(--ink-soft); }
+  @media (max-width: 640px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow-step { border-right: none; border-bottom: 1px solid var(--rule); }
+    .flow-step:last-child { border-bottom: none; }
+  }
+
+  .addenda { display: flex; flex-direction: column; }
+  .addendum { display: grid; grid-template-columns: 5.5rem 1fr; gap: 1.1rem; padding: 1.15rem 0; border-top: 1px solid var(--rule); }
+  .addenda .addendum:first-child { border-top: none; }
+  .addendum .mark { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); letter-spacing: 0.06em; padding-top: 0.15rem; }
+  .addendum h3 { margin: 0 0 0.35rem; font-size: 1.02rem; font-weight: 600; }
+  .addendum p { margin: 0; color: var(--ink-soft); font-size: 0.94rem; }
+
+  .audit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .audit-cell { background: var(--paper-raised); padding: 1.1rem 1.15rem; }
+  .audit-cell .num { font-family: var(--mono); font-size: 1.6rem; font-weight: 700; }
+  .audit-cell .label { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.2rem; }
+
+  .teaser-table { width: 100%; border-collapse: collapse; margin-top: 1.25rem; }
+  .teaser-table th { text-align: left; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--rule); font-weight: 500; }
+  .teaser-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--rule); font-size: 0.92rem; }
+  .sev-stamp { display: inline-block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 2px; border: 1.5px solid currentColor; }
+  .sev-stamp.critical { color: var(--sev-critical); }
+  .sev-stamp.high { color: var(--sev-high); }
+  .teaser-more { margin-top: 0.9rem; font-family: var(--mono); font-size: 0.8rem; }
+  .teaser-more a { text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .teaser-more a:hover { border-color: var(--stamp); color: var(--stamp); }
+
+  footer { padding: clamp(2rem, 5vw, 3rem) 0 3rem; }
+  .footer-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem; align-items: flex-end; }
+  .footer-links { display: flex; gap: 1.3rem; flex-wrap: wrap; font-family: var(--mono); font-size: 0.82rem; }
+  .footer-links a { text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .footer-links a:hover { border-color: var(--stamp); color: var(--stamp); }
+  .footer-note { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); margin-top: 1rem; }
+  .team { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.6rem; }
+  code { font-family: var(--mono); font-size: 0.92em; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <a class="brand" href="./"><b>RAKSHAK</b> · insider threat hunter</a>
+    <div class="site-nav">
+      <a href="./" aria-current="page">overview</a>
+      <a href="demo/">live demo</a>
+      <a href="docs/">docs</a>
+      <a class="ext" href="https://github.com/Wahid7852/rakshak" target="_blank" rel="noopener">github ↗</a>
+      <button class="theme-toggle" id="themeToggle" type="button">dark</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="cover ruled">
+    <div class="wrap">
+      <p class="case-no">case file · problem statement 1 · autonomous threat hunter for insider attacks</p>
+      <h1 class="title">The quiet ones never look like an attack.</h1>
+      <p class="dek">RAKSHAK is a central node that watches a whole fleet of employees at once, builds a
+        behavioral baseline for each person from their own history, and scores new activity against it, not
+        against an office-wide rule. No labeled attack data. No employee gets their own copy of the system.</p>
+      <div class="cover-actions">
+        <a class="btn primary" href="demo/">open the live demo</a>
+        <a class="btn ghost" href="docs/">read the docs</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">what it does</p>
+      <h2>One node, a fleet of baselines</h2>
+      <div class="prose">
+        <p>Thin collector agents sit on each monitored machine and forward login, file-access, and
+          data-transfer events to one central RAKSHAK node — not one RAKSHAK installed per employee. The
+          node builds a behavioral baseline per employee from their own history, scores new events against
+          it with an unsupervised anomaly engine, and surfaces alerts with a severity score and a
+          plain-language reason.</p>
+        <p>The one rule the whole design answers to: no single anomalous event should ever reach high
+          severity alone. Risk decays on a 3-day half-life; severity only escalates on sustained or
+          corroborating signal.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">beyond the brief</p>
+      <h2>Five things the brief didn't ask for</h2>
+      <div class="addenda">
+        <div class="addendum">
+          <div class="mark">ADD. 1</div>
+          <div><h3>Dual-timescale baseline</h3>
+            <p>A fast and a slow baseline run side by side. Catches an employee drifting a little further
+              each week, gradually enough to fool a single adaptive average.</p></div>
+        </div>
+        <div class="addendum">
+          <div class="mark">ADD. 2</div>
+          <div><h3>HR signal fusion</h3>
+            <p>A resignation or PIP flag raises scrutiny, but only ever amplifies a real anomaly — proven
+              with a dedicated control employee carrying the HR signal and nothing else.</p></div>
+        </div>
+        <div class="addendum">
+          <div class="mark">ADD. 3</div>
+          <div><h3>Plain-language narrative</h3>
+            <p>Every alert reads as a paragraph, grounded in real computed reasons, not a bare score.</p></div>
+        </div>
+        <div class="addendum">
+          <div class="mark">ADD. 4</div>
+          <div><h3>Analyst feedback loop</h3>
+            <p>Confirm or dismiss an alert and that specific signal's weight adjusts for that specific
+              employee going forward.</p></div>
+        </div>
+        <div class="addendum">
+          <div class="mark">ADD. 5</div>
+          <div><h3>Blast radius &amp; time-to-critical</h3>
+            <p>How much sensitive activity moved in the trailing two weeks, and a projected days-to-critical
+              at the current rate.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">exhibit A</p>
+      <h2>A real run, three rows of it</h2>
+      <p class="lede">14 simulated employees, 4 carrying an injected insider pattern the detector was never
+        told about. All 4 caught. The full 14-row breakdown, with per-employee narratives, lives on the
+        live demo page.</p>
+      <table class="teaser-table">
+        <thead><tr><th>employee</th><th>severity</th><th>risk</th><th>subtype</th></tr></thead>
+        <tbody>
+          <tr><td>EMP006</td><td><span class="sev-stamp critical">critical</span></td><td class="tnum">1.00</td><td>data transfer, staged exfil</td></tr>
+          <tr><td>EMP013</td><td><span class="sev-stamp critical">critical</span></td><td class="tnum">1.00</td><td>file access, resignation window</td></tr>
+          <tr><td>EMP014</td><td><span class="sev-stamp high">high</span></td><td class="tnum">0.77</td><td>data transfer, slow drift</td></tr>
+        </tbody>
+      </table>
+      <p class="teaser-more"><a href="demo/">see the full 14-row run →</a></p>
+
+      <div class="audit-grid" style="margin-top:2rem">
+        <div class="audit-cell"><div class="num tnum">239</div><div class="label">tests passing</div></div>
+        <div class="audit-cell"><div class="num tnum">76</div><div class="label">insider-engine tests</div></div>
+        <div class="audit-cell"><div class="num tnum">80%</div><div class="label">coverage / 76% floor</div></div>
+        <div class="audit-cell"><div class="num tnum">4/4</div><div class="label">injected insiders caught</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ruled">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <div class="brand" style="pointer-events:none"><b>RAKSHAK</b></div>
+          <p class="team">Garima Shrivastava &middot; Abdul Wahid Khan &middot; Anna Mariya Martin</p>
+        </div>
+        <div class="footer-links">
+          <a href="demo/">live demo</a>
+          <a href="docs/">docs</a>
+          <a href="https://github.com/Wahid7852/rakshak" target="_blank" rel="noopener">github repository</a>
+        </div>
+      </div>
+      <p class="footer-note">every number on this page is real output from an actual run, not staged. the live demo replays captured output, it is not a hosted backend.</p>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var toggleBtn = document.getElementById('themeToggle');
+  var root = document.documentElement;
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    toggleBtn.textContent = t === 'dark' ? 'light' : 'dark';
+  }
+  var stored = null;
+  try { stored = localStorage.getItem('rakshak-theme'); } catch (e) {}
+  if (stored) applyTheme(stored);
+  else toggleBtn.textContent = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark';
+  toggleBtn.addEventListener('click', function () {
+    var current = root.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('rakshak-theme', next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

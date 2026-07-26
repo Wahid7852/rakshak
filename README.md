@@ -202,6 +202,7 @@ scripts/agent/    collector agent (runs on a monitored machine, not the central 
 samples/insider/  simulated employee log generator for the insider-threat demo
 backend/api/gRPC/protos/  gRPC service definitions
 client-qt/        Qt desktop client (talks to the FastAPI backend over REST)
+site/             static landing/demo/docs site, deployable to Vercel/Render (see site/README.md)
 ```
 
 See [Getting Started](docs/getting-started.md), [API](docs/API.md), and

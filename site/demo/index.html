@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live demo — RAKSHAK</title>
+<meta name="description" content="A real captured run of RAKSHAK's insider-threat engine: 14 employees, 4 injected insiders, all caught. Replayed client-side, not a hosted backend.">
+<style>
+  :root {
+    --paper: #F2EDE0; --paper-raised: #EAE3D1; --ink: #211D15; --ink-soft: #6B6252; --ink-faint: #8C8267;
+    --rule: #C9BFA0; --rule-strong: #A79A78; --stamp: #A23B2E; --stamp-ink: #F2EDE0; --confirmed: #2E4A3B;
+    --sev-low: #6B6252; --sev-medium: #A9781F; --sev-high: #B85420; --sev-critical: #A23B2E;
+    --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1B1712; --paper-raised: #221D16; --ink: #ECE4D0; --ink-soft: #A79A80; --ink-faint: #7D7460;
+      --rule: #4A4030; --rule-strong: #5C5138; --stamp: #D9614F; --stamp-ink: #1B1712; --confirmed: #6FA085;
+      --sev-low: #8C8267; --sev-medium: #D0A23C; --sev-high: #E17A3E; --sev-critical: #D9614F;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1B1712; --paper-raised: #221D16; --ink: #ECE4D0; --ink-soft: #A79A80; --ink-faint: #7D7460;
+    --rule: #4A4030; --rule-strong: #5C5138; --stamp: #D9614F; --stamp-ink: #1B1712; --confirmed: #6FA085;
+    --sev-low: #8C8267; --sev-medium: #D0A23C; --sev-high: #E17A3E; --sev-critical: #D9614F;
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--serif); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--stamp); color: var(--stamp-ink); }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  .masthead { border-bottom: 1px solid var(--rule); position: relative; z-index: 2; background: var(--paper); }
+  .masthead .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 0.95rem 0; flex-wrap: wrap; }
+  .brand { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); text-decoration: none; }
+  .brand b { color: var(--ink); font-weight: 700; }
+  .site-nav { display: flex; align-items: center; gap: 1.4rem; }
+  .site-nav a { font-family: var(--mono); font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: var(--ink-soft); padding-bottom: 3px; border-bottom: 1px solid transparent; }
+  .site-nav a:hover { color: var(--ink); }
+  .site-nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--stamp); }
+  .site-nav .ext { color: var(--ink-faint); }
+  .theme-toggle { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; border: 1px solid var(--rule-strong); color: var(--ink-soft); padding: 0.3rem 0.6rem; border-radius: 2px; cursor: pointer; }
+  .theme-toggle:hover { border-color: var(--stamp); color: var(--stamp); }
+
+  .ruled { background-image: repeating-linear-gradient(to bottom, transparent, transparent 27px, color-mix(in srgb, var(--rule) 55%, transparent) 28px); background-position: 0 6px; }
+
+  .cover { padding: clamp(2.4rem, 6vw, 3.6rem) 0 clamp(1.8rem, 4vw, 2.6rem); border-bottom: 1px solid var(--rule); }
+  .case-no { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 1rem; }
+  h1.title { font-size: clamp(2rem, 4.6vw, 2.7rem); line-height: 1.1; margin: 0 0 0.9rem; letter-spacing: -0.01em; text-wrap: balance; font-weight: 600; }
+  .dek { font-size: clamp(1rem, 2.1vw, 1.1rem); color: var(--ink-soft); max-width: 620px; margin: 0; text-wrap: pretty; }
+  .honesty-strip { display: flex; gap: 0.6rem; align-items: flex-start; margin-top: 1.4rem; padding: 0.75rem 1rem; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper-raised); max-width: 620px; }
+  .honesty-strip .mk { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--stamp); white-space: nowrap; padding-top: 0.1rem; }
+  .honesty-strip p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); }
+
+  section { padding: clamp(2.2rem, 5vw, 3.6rem) 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  .eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stamp); margin: 0 0 0.7rem; }
+  h2 { font-size: clamp(1.4rem, 3vw, 1.7rem); margin: 0 0 1rem; text-wrap: balance; font-weight: 600; }
+  .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.4rem; }
+
+  .demo { background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .demo-head { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--rule); }
+  .demo-head .label { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+  .demo-filters { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.03em; padding: 0.28rem 0.6rem; border-radius: 999px; border: 1px solid var(--rule-strong); background: transparent; color: var(--ink-soft); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .ledger-table { width: 100%; border-collapse: collapse; }
+  .ledger-table th { text-align: left; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); padding: 0.6rem 1.1rem; border-bottom: 1px solid var(--rule); font-weight: 500; }
+  .ledger-table td { padding: 0.7rem 1.1rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .ledger-table tbody tr { cursor: pointer; }
+  .ledger-table tbody tr:hover { background: color-mix(in srgb, var(--stamp) 6%, transparent); }
+  .ledger-table tbody tr:last-child td { border-bottom: none; }
+  .id-cell { font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+  .risk-cell { font-family: var(--mono); white-space: nowrap; }
+  .sev-stamp { display: inline-block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 2px; border: 1.5px solid currentColor; }
+  .sev-stamp.low { color: var(--sev-low); } .sev-stamp.medium { color: var(--sev-medium); }
+  .sev-stamp.high { color: var(--sev-high); } .sev-stamp.critical { color: var(--sev-critical); }
+  .meter-cell .meter { width: 70px; height: 5px; background: var(--rule); border-radius: 999px; overflow: hidden; }
+  .meter-cell .meter > div { height: 100%; background: var(--stamp); }
+  .narrative-row { display: none; }
+  .narrative-row.open { display: table-row; }
+  .narrative-row td { background: var(--paper); font-family: var(--serif); font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55; padding: 0.9rem 1.1rem 1.2rem; }
+  .narrative-row .stat-line { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-faint); margin-top: 0.5rem; letter-spacing: 0.02em; }
+  .demo-foot { padding: 0.8rem 1.1rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); }
+
+  .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .flow-step { padding: 1.1rem 1.15rem; border-right: 1px solid var(--rule); background: var(--paper-raised); }
+  .flow-step:last-child { border-right: none; }
+  .flow-step .n { font-family: var(--mono); font-size: 0.7rem; color: var(--stamp); letter-spacing: 0.08em; }
+  .flow-step h3 { font-size: 0.98rem; margin: 0.35rem 0 0.4rem; font-weight: 600; }
+  .flow-step p { margin: 0; font-size: 0.85rem; color: var(--ink-soft); }
+  @media (max-width: 640px) { .flow { grid-template-columns: 1fr; } .flow-step { border-right: none; border-bottom: 1px solid var(--rule); } .flow-step:last-child { border-bottom: none; } }
+
+  .bugfix { display: flex; flex-direction: column; }
+  .bugfix-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 1.1rem 0; border-top: 1px solid var(--rule); }
+  .bugfix .bugfix-row:first-child { border-top: none; }
+  .bugfix h4 { margin: 0 0 0.3rem; font-size: 0.9rem; font-family: var(--mono); letter-spacing: 0.02em; }
+  .bugfix .bad h4 { color: var(--sev-critical); }
+  .bugfix .good h4 { color: var(--confirmed); }
+  .bugfix p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); }
+  @media (max-width: 640px) { .bugfix-row { grid-template-columns: 1fr; gap: 0.6rem; } }
+
+  .page-nav { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.82rem; padding: 1.5rem 0; }
+  .page-nav a { text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .page-nav a:hover { border-color: var(--stamp); color: var(--stamp); }
+
+  footer { padding: clamp(2rem, 5vw, 3rem) 0 3rem; }
+  .footer-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem; align-items: flex-end; }
+  .footer-links { display: flex; gap: 1.3rem; flex-wrap: wrap; font-family: var(--mono); font-size: 0.82rem; }
+  .footer-links a { text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .footer-links a:hover { border-color: var(--stamp); color: var(--stamp); }
+  .footer-note { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <a class="brand" href="../"><b>RAKSHAK</b> · insider threat hunter</a>
+    <div class="site-nav">
+      <a href="../">overview</a>
+      <a href="./" aria-current="page">live demo</a>
+      <a href="../docs/">docs</a>
+      <a class="ext" href="https://github.com/Wahid7852/rakshak" target="_blank" rel="noopener">github ↗</a>
+      <button class="theme-toggle" id="themeToggle" type="button">dark</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="cover ruled">
+    <div class="wrap">
+      <p class="case-no">exhibit A · live demo</p>
+      <h1 class="title">One real run, in full.</h1>
+      <p class="dek">14 simulated employees, 25 days of login / file-access / data-transfer activity, 4 of
+        them carrying an injected insider pattern the detector was never told about.</p>
+      <div class="honesty-strip">
+        <span class="mk">note</span>
+        <p>This page replays real output captured from one full run of the system. It is not a live
+          backend — there's nothing running behind this page to talk to. The actual backend, and the
+          commands to run it yourself, are in the repo and on the <a href="../docs/" style="color:inherit">docs page</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">the ledger</p>
+      <h2>Employees by risk, real output</h2>
+      <p class="lede">Click a row for the full reasoning and blast-radius/ETA figures. Data is the raw
+        response shape of <code>GET /v1/insider/alerts</code> and <code>GET /v1/insider/users/{'{'}id{'}'}</code>.</p>
+
+      <div class="demo">
+        <div class="demo-head">
+          <span class="label">v1/insider/alerts · employees_by_risk</span>
+          <div class="demo-filters" id="filters">
+            <button class="chip" data-f="all" aria-pressed="true">all</button>
+            <button class="chip" data-f="critical">critical</button>
+            <button class="chip" data-f="high">high</button>
+            <button class="chip" data-f="medium">medium</button>
+            <button class="chip" data-f="low">low</button>
+          </div>
+        </div>
+        <table class="ledger-table">
+          <thead><tr><th>employee</th><th>severity</th><th>risk</th><th></th><th>last signal</th></tr></thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+        <div class="demo-foot" id="ledgerFoot"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">how it works</p>
+      <h2>How a person becomes a number, honestly</h2>
+      <p class="lede">Every stage compares an employee to their own past, never to everyone else's. No
+        single odd event is ever enough on its own.</p>
+      <div class="flow">
+        <div class="flow-step"><div class="n">01</div><h3>Baseline</h3><p>A fast and a slow running average per employee, per signal. Warms up over ~20 observations before it's trusted.</p></div>
+        <div class="flow-step"><div class="n">02</div><h3>Deviation</h3><p>Z-scores, novelty flags, and an unsupervised anomaly forest, all measured against that one person's history.</p></div>
+        <div class="flow-step"><div class="n">03</div><h3>Decay</h3><p>Risk fades on a 3-day half-life. A one-off event is forgotten if nothing follows it.</p></div>
+        <div class="flow-step"><div class="n">04</div><h3>Verdict</h3><p>Severity climbs only on sustained or corroborating signal, with a plain-language reason attached.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">how we work</p>
+      <h2>Real bugs this build caught on itself</h2>
+      <p class="lede">Not process theater — four real defects a stress test surfaced during this build,
+        and the actual fix, straight from <code>docs/results.md</code> and the engine source.</p>
+      <div class="bugfix">
+        <div class="bugfix-row">
+          <div class="bad"><h4>found</h4><p>A fixed anomaly-score cutoff flagged 2 of 12 normal employees "critical" purely from the raw score floor varying by employee/feature-mix.</p></div>
+          <div class="good"><h4>fixed</h4><p>Trigger made self-relative: a z-score against that employee's own recent anomaly-score history, not a fixed global cutoff.</p></div>
+        </div>
+        <div class="bugfix-row">
+          <div class="bad"><h4>found</h4><p>Variance-normalized drift z-score self-limits on a genuinely climbing series — the slow-drift insider scenario went undetected.</p></div>
+          <div class="good"><h4>fixed</h4><p>Added a non-normalized <code>drift_ratio()</code> for trending volume/transfer signals, kept <code>drift_zscore()</code> only for wandering ones like login hour.</p></div>
+        </div>
+        <div class="bugfix-row">
+          <div class="bad"><h4>found</h4><p>A near-zero-but-positive contribution rate produced technically-correct but absurd projections like "12,756,548,269.1 days to critical."</p></div>
+          <div class="good"><h4>fixed</h4><p>365-day sanity horizon on the ETA projection — beyond that, it reports <code>null</code> instead of a nonsense number.</p></div>
+        </div>
+        <div class="bugfix-row">
+          <div class="bad"><h4>found</h4><p>The collector agent persisted its read offset right after reading a file, before confirming the batch actually sent — a failed send got silently treated as delivered.</p></div>
+          <div class="good"><h4>fixed</h4><p>All-or-nothing flush per source; the offset only advances after a confirmed successful send.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap page-nav">
+    <a href="../">← overview</a>
+    <a href="../docs/">docs →</a>
+  </div>
+
+  <footer class="ruled">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <div class="brand" style="pointer-events:none"><b>RAKSHAK</b></div>
+        </div>
+        <div class="footer-links">
+          <a href="../">overview</a>
+          <a href="../docs/">docs</a>
+          <a href="https://github.com/Wahid7852/rakshak" target="_blank" rel="noopener">github repository</a>
+        </div>
+      </div>
+      <p class="footer-note">every number on this page is real output from an actual run, not staged.</p>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var DATA = [{"id": "EMP006", "risk": 1.0, "sev": "critical", "subtype": "data_transfer", "narrative": "EMP006 is at critical risk (score 1.00), driven by data transfer activity. Recent signals: access/transfer volume far above this employee's own baseline (2.8 sigma); trailing 7-day transfer volume trending well above this employee's normal (2.6 sigma); transfer volume has climbed 196% above this employee's long-run normal, beyond the 7-day trend alone; transfer volume has climbed 193% above this employee's long-run normal, beyond the 7-day trend alone; transfer volume has climbed 190% above this employee's long-run normal, beyond the 7-day trend alone; access/transfer volume far above this employee's own baseline (2.7 sigma); transfer volume has climbed 187% above this employee's long-run normal, beyond the 7-day trend alone. ~35.6MB of activity in the trailing 14 days.", "blast": 37321091, "eta": null}, {"id": "EMP011", "risk": 1.0, "sev": "critical", "subtype": "file_access", "narrative": "EMP011 is at critical risk (score 1.00), driven by file access activity. Recent signals: activity outside normal working hours; access/transfer volume far above this employee's own baseline (3.4 sigma); access/transfer volume far above this employee's own baseline (3.0 sigma). ~21.7MB of activity in the trailing 14 days.", "blast": 22748079, "eta": null}, {"id": "EMP013", "risk": 1.0, "sev": "critical", "subtype": "file_access", "narrative": "EMP013 is at critical risk (score 1.00), driven by file access activity. Recent signals: activity outside normal working hours; elevated scrutiny: employee is in a departing/offboarding or PIP window. ~38.9MB of activity in the trailing 14 days.", "blast": 40741188, "eta": null}, {"id": "EMP014", "risk": 0.772, "sev": "high", "subtype": "data_transfer", "narrative": "EMP014 is at high risk (score 0.77), driven by data transfer activity. Recent signals: transfer volume has climbed 167% above this employee's long-run normal, beyond the 7-day trend alone; multiple signals simultaneously elevated without any one fully triggering (volume zscore, staged trend); transfer volume has climbed 163% above this employee's long-run normal, beyond the 7-day trend alone; access/transfer volume far above this employee's own baseline (2.5 sigma); transfer volume has climbed 160% above this employee's long-run normal, beyond the 7-day trend alone; transfer volume has climbed 159% above this employee's long-run normal, beyond the 7-day trend alone. ~42.6MB of activity in the trailing 14 days; projected to reach critical in ~0.7 day(s) at the current rate.", "blast": 44624507, "eta": 0.6536488389391528}, {"id": "EMP012", "risk": 0.622, "sev": "medium", "subtype": "file_access", "narrative": "EMP012 is at medium risk (score 0.62) and worth a look, most recently via file access activity. Recent signals: shape of this event is unusually novel even by this employee's own recent standard (HST score 0.58, 3.5 sigma above their typical score); access/transfer volume far above this employee's own baseline (3.5 sigma); shape of this event is unusually novel even by this employee's own recent standard (HST score 0.57, 4.1 sigma above their typical score); shape of this event is unusually novel even by this employee's own recent standard (HST score 0.57, 7.5 sigma above their typical score); access to a file path not seen before for this employee. ~23.9MB of activity in the trailing 14 days; projected to reach critical in ~0.5 day(s) at the current rate.", "blast": 25107201, "eta": 0.5030170760084232}, {"id": "EMP010", "risk": 0.51, "sev": "medium", "subtype": "file_access", "narrative": "EMP010 is at medium risk (score 0.51) and worth a look, most recently via file access activity. Recent signals: shape of this event is unusually novel even by this employee's own recent standard (HST score 0.51, 3.6 sigma above their typical score); shape of this event is unusually novel even by this employee's own recent standard (HST score 0.51, 3.4 sigma above their typical score); shape of this event is unusually novel even by this employee's own recent standard (HST score 0.51, 4.3 sigma above their typical score); access to a file path not seen before for this employee. ~25.3MB of activity in the trailing 14 days; projected to reach critical in ~4.5 day(s) at the current rate.", "blast": 26538866, "eta": 4.467570644450038}, {"id": "EMP004", "risk": 0.45, "sev": "medium", "subtype": "file_access", "narrative": "EMP004 is at medium risk (score 0.45) and worth a look, most recently via file access activity. Recent signals: shape of this event is unusually novel even by this employee's own recent standard (HST score 0.55, 3.6 sigma above their typical score); access/transfer volume far above this employee's own baseline (3.9 sigma); shape of this event is unusually novel even by this employee's own recent standard (HST score 0.57, 6.8 sigma above their typical score); access to a file path not seen before for this employee. ~21.7MB of activity in the trailing 14 days; projected to reach critical in ~0.6 day(s) at the current rate.", "blast": 22804525, "eta": 0.6359716218906902}, {"id": "EMP009", "risk": 0.258, "sev": "low", "subtype": "file_access", "narrative": "EMP009 shows no significant behavioral deviation (score 0.26, file access activity).", "blast": 13194373, "eta": null}, {"id": "EMP005", "risk": 0.205, "sev": "low", "subtype": "file_access", "narrative": "EMP005 shows no significant behavioral deviation (score 0.21, file access activity).", "blast": 16565674, "eta": 9.888299027451131}, {"id": "EMP002", "risk": 0.19, "sev": "low", "subtype": "file_access", "narrative": "EMP002 shows no significant behavioral deviation (score 0.19, file access activity).", "blast": 37154769, "eta": null}, {"id": "EMP008", "risk": 0.141, "sev": "low", "subtype": "file_access", "narrative": "EMP008 shows no significant behavioral deviation (score 0.14, file access activity).", "blast": 23594898, "eta": null}, {"id": "EMP001", "risk": 0.136, "sev": "low", "subtype": "file_access", "narrative": "EMP001 shows no significant behavioral deviation (score 0.14, file access activity).", "blast": 16777004, "eta": null}, {"id": "EMP007", "risk": 0.102, "sev": "low", "subtype": "file_access", "narrative": "EMP007 shows no significant behavioral deviation (score 0.10, file access activity).", "blast": 16054315, "eta": null}, {"id": "EMP003", "risk": 0.072, "sev": "low", "subtype": "data_transfer", "narrative": "EMP003 shows no significant behavioral deviation (score 0.07, data transfer activity).", "blast": 15743341, "eta": null}];
+
+  var order = { critical: 0, high: 1, medium: 2, low: 3 };
+  var sorted = DATA.slice().sort(function (a, b) { return order[a.sev] - order[b.sev] || b.risk - a.risk; });
+
+  var body = document.getElementById('ledgerBody');
+  var foot = document.getElementById('ledgerFoot');
+  var openId = null;
+
+  function fmtBytes(n) {
+    var units = ['B', 'KB', 'MB', 'GB'];
+    var i = 0;
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    return (i === 0 ? n.toFixed(0) : n.toFixed(1)) + units[i];
+  }
+
+  function lastSignal(narrative) {
+    var m = narrative.match(/Recent signals: (.+?)(?:\.\s*~|\.$)/);
+    if (m) {
+      var first = m[1].split(';')[0].trim();
+      return first.length > 60 ? first.slice(0, 57) + '...' : first;
+    }
+    return 'no significant deviation';
+  }
+
+  function render(filter) {
+    body.innerHTML = '';
+    var shown = sorted.filter(function (u) { return filter === 'all' || u.sev === filter; });
+    shown.forEach(function (u) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="id-cell">' + u.id + '</td>' +
+        '<td><span class="sev-stamp ' + u.sev + '">' + u.sev + '</span></td>' +
+        '<td class="risk-cell tnum">' + u.risk.toFixed(2) + '</td>' +
+        '<td class="meter-cell"><span class="meter"><div style="width:' + Math.round(u.risk * 100) + '%"></div></span></td>' +
+        '<td>' + lastSignal(u.narrative) + '</td>';
+      tr.addEventListener('click', function () { toggle(u.id); });
+      body.appendChild(tr);
+
+      var nr = document.createElement('tr');
+      nr.className = 'narrative-row' + (openId === u.id ? ' open' : '');
+      var etaLine = u.eta ? ('projected to critical in ~' + u.eta.toFixed(1) + ' day(s) at current rate') : 'no upward trend to project';
+      nr.innerHTML = '<td colspan="5">' + u.narrative +
+        '<div class="stat-line">blast radius (14d): ' + fmtBytes(u.blast) + ' &middot; ' + etaLine + '</div></td>';
+      body.appendChild(nr);
+    });
+    foot.textContent = shown.length + ' of ' + DATA.length + ' employees shown · GET /v1/insider/alerts?min_severity=' + (filter === 'all' ? 'low' : filter);
+  }
+
+  function toggle(id) { openId = openId === id ? null : id; render(currentFilter); }
+
+  var currentFilter = 'all';
+  var filterBar = document.getElementById('filters');
+  filterBar.addEventListener('click', function (e) {
+    var btn = e.target.closest('.chip');
+    if (!btn) return;
+    Array.prototype.forEach.call(filterBar.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', 'false'); });
+    btn.setAttribute('aria-pressed', 'true');
+    currentFilter = btn.getAttribute('data-f');
+    openId = null;
+    render(currentFilter);
+  });
+
+  render('all');
+
+  var toggleBtn = document.getElementById('themeToggle');
+  var root = document.documentElement;
+  function applyTheme(t) { root.setAttribute('data-theme', t); toggleBtn.textContent = t === 'dark' ? 'light' : 'dark'; }
+  var stored = null;
+  try { stored = localStorage.getItem('rakshak-theme'); } catch (e) {}
+  if (stored) applyTheme(stored);
+  else toggleBtn.textContent = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark';
+  toggleBtn.addEventListener('click', function () {
+    var current = root.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('rakshak-theme', next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

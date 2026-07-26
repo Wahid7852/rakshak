@@ -92,13 +92,6 @@ Generate C++ bindings later, when the Qt toolchain is installed:
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-The training smoke test is intentionally opt-in because it needs additional research inputs:
-
-```powershell
-$env:RAKSHAK_RUN_TRAINING_SMOKE = "1"
-.\.venv\Scripts\python.exe -m pytest -q tests\integration\api\test_baseline_smoke.py
-```
-
 ## Common Problems
 
 - `Generated decider gRPC stubs are missing`: run `scripts/dev/gen_decider_proto.py`.

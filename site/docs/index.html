@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs — RAKSHAK</title>
+<meta name="description" content="RAKSHAK insider-threat engine: architecture, requirements, quickstart, and the real API surface.">
+<style>
+  :root {
+    --paper: #F2EDE0; --paper-raised: #EAE3D1; --ink: #211D15; --ink-soft: #6B6252; --ink-faint: #8C8267;
+    --rule: #C9BFA0; --rule-strong: #A79A78; --stamp: #A23B2E; --stamp-ink: #F2EDE0; --confirmed: #2E4A3B;
+    --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1B1712; --paper-raised: #221D16; --ink: #ECE4D0; --ink-soft: #A79A80; --ink-faint: #7D7460;
+      --rule: #4A4030; --rule-strong: #5C5138; --stamp: #D9614F; --stamp-ink: #1B1712; --confirmed: #6FA085;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1B1712; --paper-raised: #221D16; --ink: #ECE4D0; --ink-soft: #A79A80; --ink-faint: #7D7460;
+    --rule: #4A4030; --rule-strong: #5C5138; --stamp: #D9614F; --stamp-ink: #1B1712; --confirmed: #6FA085;
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--serif); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--stamp); color: var(--stamp-ink); }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  .masthead { border-bottom: 1px solid var(--rule); position: relative; z-index: 2; background: var(--paper); }
+  .masthead .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 0.95rem 0; flex-wrap: wrap; }
+  .brand { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); text-decoration: none; }
+  .brand b { color: var(--ink); font-weight: 700; }
+  .site-nav { display: flex; align-items: center; gap: 1.4rem; }
+  .site-nav a { font-family: var(--mono); font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: var(--ink-soft); padding-bottom: 3px; border-bottom: 1px solid transparent; }
+  .site-nav a:hover { color: var(--ink); }
+  .site-nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--stamp); }
+  .site-nav .ext { color: var(--ink-faint); }
+  .theme-toggle { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; border: 1px solid var(--rule-strong); color: var(--ink-soft); padding: 0.3rem 0.6rem; border-radius: 2px; cursor: pointer; }
+  .theme-toggle:hover { border-color: var(--stamp); color: var(--stamp); }
+
+  .ruled { background-image: repeating-linear-gradient(to bottom, transparent, transparent 27px, color-mix(in srgb, var(--rule) 55%, transparent) 28px); background-position: 0 6px; }
+
+  .cover { padding: clamp(2.4rem, 6vw, 3.4rem) 0 clamp(1.6rem, 4vw, 2.2rem); border-bottom: 1px solid var(--rule); }
+  .case-no { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 1rem; }
+  h1.title { font-size: clamp(2rem, 4.6vw, 2.6rem); line-height: 1.1; margin: 0 0 0.8rem; letter-spacing: -0.01em; text-wrap: balance; font-weight: 600; }
+  .dek { font-size: clamp(1rem, 2.1vw, 1.1rem); color: var(--ink-soft); max-width: 620px; margin: 0; text-wrap: pretty; }
+
+  section { padding: clamp(2.2rem, 5vw, 3.4rem) 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  .eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stamp); margin: 0 0 0.7rem; }
+  h2 { font-size: clamp(1.4rem, 3vw, 1.7rem); margin: 0 0 1rem; text-wrap: balance; font-weight: 600; }
+  .lede { max-width: 620px; color: var(--ink-soft); margin: 0 0 1.4rem; }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--paper-raised); padding: 0.1em 0.35em; border-radius: 2px; }
+  pre { font-family: var(--mono); font-size: 0.84rem; background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 3px; padding: 1rem 1.1rem; overflow-x: auto; line-height: 1.55; }
+  pre code { background: none; padding: 0; }
+
+  /* ---------- architecture diagram ---------- */
+  .arch { display: flex; flex-direction: column; }
+  .arch-lane-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 0.5rem; }
+  .arch-stage { border: 1px solid var(--rule); border-radius: 3px; background: var(--paper-raised); padding: 0.85rem 1.1rem; }
+  .arch-stage .t { font-family: var(--mono); font-size: 0.86rem; font-weight: 700; }
+  .arch-stage .d { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.25rem; }
+  .arch-stage .p { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); margin-top: 0.35rem; }
+  .arch-arrow { text-align: center; font-family: var(--mono); color: var(--ink-faint); padding: 0.3rem 0; font-size: 0.9rem; }
+  .arch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; }
+  @media (max-width: 700px) { .arch-grid { grid-template-columns: 1fr 1fr; } }
+  .arch-group { border: 1px dashed var(--rule-strong); border-radius: 4px; padding: 1rem; }
+
+  .req-list { list-style: none; margin: 0; padding: 0; }
+  .req-list li { padding: 0.5rem 0; border-top: 1px solid var(--rule); font-size: 0.94rem; }
+  .req-list li:first-child { border-top: none; }
+  .req-list code { margin-right: 0.3rem; }
+
+  .api-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+  .api-table th { text-align: left; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--rule); font-weight: 500; }
+  .api-table td { padding: 0.65rem 0.8rem; border-bottom: 1px solid var(--rule); font-size: 0.88rem; vertical-align: top; }
+  .api-table .m { font-family: var(--mono); font-size: 0.76rem; font-weight: 700; white-space: nowrap; }
+  .api-table .path { font-family: var(--mono); font-size: 0.82rem; white-space: nowrap; }
+  .api-table .auth { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); }
+
+  .doclinks { display: flex; flex-direction: column; }
+  .doclink { display: grid; grid-template-columns: 10rem 1fr; gap: 1rem; padding: 0.8rem 0; border-top: 1px solid var(--rule); align-items: baseline; }
+  .doclinks .doclink:first-child { border-top: none; }
+  .doclink a { font-family: var(--mono); font-size: 0.86rem; text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .doclink a:hover { border-color: var(--stamp); color: var(--stamp); }
+  .doclink p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); }
+
+  .page-nav { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.82rem; padding: 1.5rem 0; }
+  .page-nav a { text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .page-nav a:hover { border-color: var(--stamp); color: var(--stamp); }
+
+  footer { padding: clamp(2rem, 5vw, 3rem) 0 3rem; }
+  .footer-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem; align-items: flex-end; }
+  .footer-links { display: flex; gap: 1.3rem; flex-wrap: wrap; font-family: var(--mono); font-size: 0.82rem; }
+  .footer-links a { text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .footer-links a:hover { border-color: var(--stamp); color: var(--stamp); }
+  .footer-note { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <a class="brand" href="../"><b>RAKSHAK</b> · insider threat hunter</a>
+    <div class="site-nav">
+      <a href="../">overview</a>
+      <a href="../demo/">live demo</a>
+      <a href="./" aria-current="page">docs</a>
+      <a class="ext" href="https://github.com/Wahid7852/rakshak" target="_blank" rel="noopener">github ↗</a>
+      <button class="theme-toggle" id="themeToggle" type="button">dark</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="cover ruled">
+    <div class="wrap">
+      <p class="case-no">reference</p>
+      <h1 class="title">How it's actually built.</h1>
+      <p class="dek">The real path an event takes from a monitored machine to a scored, explained alert —
+        plus what you need to run it and the API surface that's actually live.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">architecture</p>
+      <h2>The insider-threat path</h2>
+      <p class="lede">Not the malware/log cascade (that's a separate pipeline, documented in the repo's own
+        <code>docs/ARCHITECTURE.md</code>) — this is specifically how a login/file-access/data-transfer/HR
+        event becomes a scored alert, module by real module.</p>
+
+      <div class="arch">
+        <p class="arch-lane-label">monitored machine</p>
+        <div class="arch-stage">
+          <div class="t">collector agent</div>
+          <div class="d">Tails per-employee login / file-access / data-transfer logs, forwards batches over HTTP. All-or-nothing per source: the read offset only advances after a confirmed send.</div>
+          <div class="p">scripts/agent/collector.py</div>
+        </div>
+        <div class="arch-arrow">↓ HTTP POST, <code style="font-size:0.85em">x-api-key</code></div>
+
+        <p class="arch-lane-label">central node — ingest</p>
+        <div class="arch-stage">
+          <div class="t">POST /v1/insider/ingest</div>
+          <div class="d">Validates the batch, maps each event's <code style="font-size:0.85em">event_type</code> to an orchestrator artifact kind.</div>
+          <div class="p">backend/api/routers/insider.py</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-stage">
+          <div class="t">Router.decide(Event)</div>
+          <div class="d">The same single decision entry point every detector in the system converges on.</div>
+          <div class="p">backend/orchestrator/decision.py</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-stage">
+          <div class="t">Detector registry</div>
+          <div class="d">Routes to <code style="font-size:0.85em">InsiderDetector</code> for login/file_access/data_transfer, or <code style="font-size:0.85em">InsiderHrSignalDetector</code> for hr_signal.</div>
+          <div class="p">backend/orchestrator/registry.py</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+
+        <p class="arch-lane-label">per-employee engine</p>
+        <div class="arch-group">
+          <div class="arch-grid">
+            <div class="arch-stage"><div class="t">Baseline store</div><div class="d">Fast + slow EWMA per employee, per feature.</div><div class="p">entity_state.py</div></div>
+            <div class="arch-stage"><div class="t">Anomaly engine</div><div class="d">Self-relative HalfSpaceForest scoring.</div><div class="p">anomaly.py</div></div>
+            <div class="arch-stage"><div class="t">Lifecycle store</div><div class="d">HR signal → time-boxed risk multiplier.</div><div class="p">lifecycle_store.py</div></div>
+            <div class="arch-stage"><div class="t">Feedback store</div><div class="d">Analyst confirm/dismiss → damping.</div><div class="p">feedback_store.py</div></div>
+          </div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-stage">
+          <div class="t">Risk tracker</div>
+          <div class="d">3-day half-life decay, EWMA contribution rate → ETA-to-critical.</div>
+          <div class="p">risk.py</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-stage">
+          <div class="t">Alert store</div>
+          <div class="d">Severity bucket, blast-radius aggregation across subtypes, per-employee snapshot.</div>
+          <div class="p">alert_store.py</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-stage">
+          <div class="t">Narrative</div>
+          <div class="d">Template composition into one plain-language paragraph, grounded strictly in the computed reasons above — no LLM call, nothing invented.</div>
+          <div class="p">narrative.py</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+
+        <p class="arch-lane-label">surface</p>
+        <div class="arch-stage">
+          <div class="t">Alerts, users, feedback, dashboard</div>
+          <div class="d">GET /v1/insider/alerts · GET /v1/insider/users/{'{'}id{'}'} · POST .../feedback · GET /insider/dashboard</div>
+          <div class="p">backend/api/routers/insider.py · backend/api/static/insider_dashboard.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">requirements</p>
+      <h2>What you need</h2>
+      <ul class="req-list">
+        <li><code>Python ≥3.11</code> — the only hard requirement for the backend and test suite.</li>
+        <li><code>bubblewrap (bwrap)</code> — optional, for the sandboxed static-analysis step on the malware side only; falls back to a degraded rlimit-only mode with a logged warning if missing. Not needed for the insider-threat engine at all.</li>
+        <li><code>pip install -e ".[quantum]"</code> — optional, only needed to run <code>file_qsvc</code> for real on the malware side.</li>
+        <li><code>pip install -e ".[dev]"</code> — pytest, ruff, mypy, bandit, pip-audit, for running the test suite.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">quickstart</p>
+      <h2>Run it yourself</h2>
+      <pre><code># generate simulated per-employee logs (a minority carry an injected insider pattern)
+python samples/insider/generate_employee_logs.py --employees 12 --insiders 3
+
+# central node
+rakshak-http
+
+# collector agent — tails the generated logs, forwards batches to the ingest endpoint
+python scripts/agent/collector.py --source samples/insider/logs --server http://127.0.0.1:8080 --once
+
+# severity-scored alert feed
+curl -H "x-api-key: dev-key" "http://127.0.0.1:8080/v1/insider/alerts?min_severity=high"
+
+# dashboard
+open http://127.0.0.1:8080/insider/dashboard</code></pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">API reference</p>
+      <h2>The insider-threat routes</h2>
+      <p class="lede">All under the <code>/v1</code> prefix and behind <code>x-api-key</code> except the
+        dashboard page itself. This table doesn't exist anywhere else in the repo yet — <code>docs/API.md</code>
+        only documents the malware-scan routes today.</p>
+      <table class="api-table">
+        <thead><tr><th>method</th><th>path</th><th>purpose</th><th>auth</th></tr></thead>
+        <tbody>
+          <tr><td class="m">POST</td><td class="path">/v1/insider/ingest</td><td>Accept a batch of login/file_access/data_transfer/hr_signal events</td><td class="auth">x-api-key</td></tr>
+          <tr><td class="m">GET</td><td class="path">/v1/insider/alerts</td><td>Severity-scored alert feed, filterable by min_severity / employee_id</td><td class="auth">x-api-key</td></tr>
+          <tr><td class="m">POST</td><td class="path">/v1/insider/alerts/{'{'}alert_id{'}'}/feedback</td><td>Confirm or dismiss an alert, damps that reason for that employee</td><td class="auth">x-api-key</td></tr>
+          <tr><td class="m">GET</td><td class="path">/v1/insider/users/{'{'}employee_id{'}'}</td><td>Per-employee snapshot: risk, severity, narrative, blast radius, ETA</td><td class="auth">x-api-key</td></tr>
+          <tr><td class="m">GET</td><td class="path">/insider/dashboard</td><td>The web dashboard (no /v1 prefix, no auth on the page itself)</td><td class="auth">none</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">repo layout</p>
+      <h2>Where things live</h2>
+      <pre><code>backend/
+  api/            FastAPI routers + gRPC server/client
+  orchestrator/   the cascade: decision.py (router), registry.py (detectors), policies.py
+  engine/
+    models/       detector implementations (classical/, quantum/) + trained artifacts/
+    features/     feature extraction shared by detectors
+    insider/      per-employee baseline, anomaly, risk, and alert engine
+    sandbox/      read-only bwrap-isolated file analysis worker
+scripts/agent/    collector agent (runs on a monitored machine, not the central node)
+samples/insider/  simulated employee log generator for the insider-threat demo
+client-qt/        Qt desktop client (talks to the FastAPI backend over REST)
+site/             this site</code></pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">further reading</p>
+      <h2>Full docs, in the repo</h2>
+      <div class="doclinks">
+        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">ARCHITECTURE.md</a><p>The full malware/log decision cascade, mermaid diagrams included.</p></div>
+        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/API.md" target="_blank" rel="noopener">API.md</a><p>The malware-scan HTTP/gRPC contract, auth, rate limits, runtime variables.</p></div>
+        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/docs/getting-started.md" target="_blank" rel="noopener">getting-started.md</a><p>Install, run, test — Windows and Linux.</p></div>
+        <div class="doclink"><a href="https://github.com/Wahid7852/rakshak/blob/main/hackathon/technical-approach.md" target="_blank" rel="noopener">technical-approach.md</a><p>The insider-engine design writeup, including what it deliberately doesn't do yet.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap page-nav">
+    <a href="../demo/">← live demo</a>
+    <a href="../">overview →</a>
+  </div>
+
+  <footer class="ruled">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <div class="brand" style="pointer-events:none"><b>RAKSHAK</b></div>
+        </div>
+        <div class="footer-links">
+          <a href="../">overview</a>
+          <a href="../demo/">live demo</a>
+          <a href="https://github.com/Wahid7852/rakshak" target="_blank" rel="noopener">github repository</a>
+        </div>
+      </div>
+      <p class="footer-note">every path and route on this page is real, read from the source this session.</p>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var toggleBtn = document.getElementById('themeToggle');
+  var root = document.documentElement;
+  function applyTheme(t) { root.setAttribute('data-theme', t); toggleBtn.textContent = t === 'dark' ? 'light' : 'dark'; }
+  var stored = null;
+  try { stored = localStorage.getItem('rakshak-theme'); } catch (e) {}
+  if (stored) applyTheme(stored);
+  else toggleBtn.textContent = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark';
+  toggleBtn.addEventListener('click', function () {
+    var current = root.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('rakshak-theme', next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>
