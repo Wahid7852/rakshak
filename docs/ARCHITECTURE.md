@@ -236,9 +236,9 @@ gRPC is best for Qt integration, streaming logs, and large-file upload flows.
 
 ### Phase 2: Consolidate Legacy Service Code (done)
 
-- The rest of the legacy top-level pipeline (`service/`, `models/`, `src/`, `features/`,
-  `Dataset/`, `clients/`) was disconnected from the live backend and has been removed
-  outright rather than kept as dead weight or compatibility wrappers.
+- The legacy top-level pipeline (`service/`, `models/`, `src/`, `features/`, `Dataset/`,
+  `clients/`) was disconnected from the live backend and has been removed outright rather
+  than kept as dead weight or compatibility wrappers.
 
 ### Phase 3: Artifact Discipline
 
