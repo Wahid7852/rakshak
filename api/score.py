@@ -5,19 +5,16 @@
 # persistent deployment (Vercel functions don't hold state between calls).
 from __future__ import annotations
 
-import asyncio
-import json
-import os
-import sys
+import asyncio, json, os, sys
 from http.server import BaseHTTPRequestHandler
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.engine.insider.pipeline import InsiderDetector, InsiderHrSignalDetector  # noqa: E402
 from backend.engine.insider.narrative import build_narrative  # noqa: E402
-import backend.engine.insider.alert_store as alert_store_mod  # noqa: E402
-import backend.engine.insider.feedback_store as feedback_store_mod  # noqa: E402
-import backend.engine.insider.lifecycle_store as lifecycle_store_mod  # noqa: E402
+from backend.engine.insider import alert_store as alert_store_mod  # noqa: E402
+from backend.engine.insider import feedback_store as feedback_store_mod  # noqa: E402
+from backend.engine.insider import lifecycle_store as lifecycle_store_mod  # noqa: E402
 
 MAX_EVENTS = 3000  # ~0.2s to score 1300 events locally, plenty of headroom below any function timeout
 MAX_EMPLOYEES = 40  # demo sanity limit, keeps one request's CPU time bounded
