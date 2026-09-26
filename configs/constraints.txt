@@ -1,6 +1,6 @@
 # Tuned for Python 3.13.x
 numpy>=2.0,<3
-pandas>=2.2,<3
+pandas>=2.2,<4
 scikit-learn>=1.6,<1.8
 lightgbm>=4.3,<5
 pydantic>=2.7,<3
